@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: function-bay-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: function-bay
+      POSTGRES_PASSWORD: function-bay
+      POSTGRES_DB: function-bay
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - function-bay-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: function-bay-redis
+    restart: unless-stopped
+    networks:
+      - function-bay-network
+
+  object-storage:
+    image: ghcr.io/metorial/object-storage:latest
+    ports:
+      - "52010:52010"
+    volumes:
+      - object-store-data:/app/data
+    environment:
+      RUST_LOG: info
+      AWS_ACCESS_KEY_ID: ${OBJECT_STORAGE_AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${OBJECT_STORAGE_AWS_REGION}
+      
+      OBJECT_STORE__SERVER__HOST: 0.0.0.0
+      OBJECT_STORE__SERVER__PORT: 52010
+      OBJECT_STORE__BACKEND__TYPE: s3
+      OBJECT_STORE__BACKEND__REGION: ${OBJECT_STORAGE_AWS_REGION}
+      OBJECT_STORE__BACKEND__PHYSICAL_BUCKET: ${OBJECT_STORAGE_AWS_S3_BUCKET}
+
+    container_name: function-bay-object-storage
+    restart: unless-stopped
+    networks:
+      - function-bay-network
+
+  forge:  
+    image: ghcr.io/metorial/forge:latest
+    container_name: function-bay-forge
+    restart: unless-stopped
+    ports:
+      - "52020:52020"
+    environment:
+      DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/forge
+      REDIS_URL: redis://redis:6379/0
+      
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DEFAULT_PROVIDER: aws.code-build
+
+      OBJECT_STORAGE_URL: http://object-storage:52010
+      LOG_BUCKET_NAME: logs
+      ARTIFACT_BUCKET_NAME: artifacts
+
+      CODE_BUILD_AWS_REGION: ${CODE_BUILD_AWS_REGION:-}
+      CODE_BUILD_AWS_ACCESS_KEY_ID: ${CODE_BUILD_AWS_ACCESS_KEY_ID:-}
+      CODE_BUILD_AWS_SECRET_ACCESS_KEY: ${CODE_BUILD_AWS_SECRET_ACCESS_KEY:-}
+      CODE_BUILD_PROJECT_NAME: ${CODE_BUILD_PROJECT_NAME:-}
+      CODE_BUILD_ROLE_ARN: ${CODE_BUILD_ROLE_ARN:-}
+    depends_on:
+      - postgres
+      - redis
+      - object-storage
+    networks:
+      - function-bay-network
+
+  function-bay:  
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    container_name: function-bay-service
+    restart: unless-stopped
+    ports:
+      - "52030:52030"
+    environment:
+      DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/function-bay
+      REDIS_URL: redis://redis:6379/0
+      
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
+
+      OBJECT_STORAGE_URL: http://object-storage:52010
+      FORGE_API_URL: http://forge:52020
+
+      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}
+      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-}
+      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-}
+      LAMBDA_ROLE_ARN: ${LAMBDA_ROLE_ARN:-}
+
+    volumes:
+      - ./src:/app/src:ro
+      - ./package.json:/app/package.json:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+    depends_on:
+      - postgres
+      - redis
+      - object-storage
+      - forge
+    networks:
+      - function-bay-network
+
+volumes:
+  postgres_data:
+    driver: local
+  object-store-data:
+    driver: local
+
+networks:
+  function-bay-network:
+    driver: bridge
