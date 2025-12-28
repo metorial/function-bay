@@ -15,14 +15,16 @@ export let functionInvocationPresenter = (
 
   error: invocation.error,
 
-  logs: invocation.logs.split('\n').map(line => {
-    let [ts, message] = JSON.parse(line);
+  logs: !invocation.logs
+    ? []
+    : invocation.logs.split('\n').map(line => {
+        let [ts, message] = JSON.parse(line);
 
-    return {
-      timestamp: ts,
-      message
-    };
-  }),
+        return {
+          timestamp: ts,
+          message
+        };
+      }),
 
   createdAt: invocation.createdAt
 });
