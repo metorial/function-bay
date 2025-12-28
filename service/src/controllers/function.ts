@@ -69,22 +69,6 @@ export let functionController = app.controller({
     )
     .do(async ctx => functionPresenter(ctx.function)),
 
-  delete: functionApp
-    .handler()
-    .input(
-      v.object({
-        instanceId: v.string(),
-        functionId: v.string()
-      })
-    )
-    .do(async ctx => {
-      let func = await functionService.deleteFunction({
-        function: ctx.function
-      });
-
-      return functionPresenter(func);
-    }),
-
   update: functionApp
     .handler()
     .input(

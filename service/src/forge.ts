@@ -6,7 +6,7 @@ import { db } from './db';
 import { env } from './env';
 import { snowflake } from './id';
 
-export let forge = createForgeClient({
+export let forge: ReturnType<typeof createForgeClient> = createForgeClient({
   endpoint: env.forge.FORGE_API_URL
 });
 

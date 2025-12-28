@@ -13,7 +13,8 @@ import type {
 import type { ForgeWorkflowStep } from '../forge';
 
 export interface ProviderRuntimeResult {
-  runtime: FunctionBayRuntimeConfig;
+  runtime: Runtime;
+  spec: FunctionBayRuntimeSpec;
   layer: FunctionBayLayer;
   workflow: ForgeWorkflowStep[];
   identifier: string;

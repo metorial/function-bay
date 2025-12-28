@@ -29,7 +29,7 @@ export let getRuntime = async (
   spec: FunctionBayRuntimeSpec
 ): Promise<{
   runtime: Runtime;
-  spec: FunctionBayRuntimeConfig;
+  spec: FunctionBayRuntimeSpec;
   layer: FunctionBayLayer;
   workflow: ForgeWorkflowStep[];
   identifier: string;
