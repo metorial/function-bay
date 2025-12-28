@@ -106,6 +106,7 @@ model Function {
   functionDeployments FunctionDeployment[]
   runtime             Runtime?             @relation(fields: [runtimeOid], references: [oid])
   runtimeOid          BigInt?
+  functionBundles     FunctionBundle[]
 
   @@unique([identifier, instanceOid])
 }
@@ -130,6 +131,9 @@ model FunctionDeployment {
 
   functionVersionOid BigInt?
   functionVersion    FunctionVersion? @relation(fields: [functionVersionOid], references: [oid])
+
+  functionBundleOid BigInt?
+  functionBundle    FunctionBundle? @relation(fields: [functionBundleOid], references: [oid])
 
   runtimeOid BigInt
   runtime    Runtime @relation(fields: [runtimeOid], references: [oid])
@@ -202,6 +206,9 @@ model FunctionVersion {
   runtimeOid BigInt
   runtime    Runtime @relation(fields: [runtimeOid], references: [oid])
 
+  functionBundleOid BigInt
+  functionBundle    FunctionBundle @relation(fields: [functionBundleOid], references: [oid])
+
   /// [FunctionConfiguration]
   configuration Json
 
@@ -242,4 +249,27 @@ model FunctionInvocation {
   billedTimeMs  Int
 
   createdAt DateTime @default(now())
+}
+
+enum FunctionBundleStatus {
+  uploading
+  available
+  failed
+}
+
+model FunctionBundle {
+  oid    BigInt               @id
+  id     String               @unique
+  status FunctionBundleStatus
+
+  functionOid BigInt
+  function    Function @relation(fields: [functionOid], references: [oid])
+
+  storageKey String?
+  bucket     String?
+
+  createdAt DateTime @default(now())
+
+  functionDeployments FunctionDeployment[]
+  functionVersions    FunctionVersion[]
 }
