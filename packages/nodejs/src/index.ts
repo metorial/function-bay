@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { getMetorialLauncher } from './launcher';
 import { cleanup } from './lib/cleanup';
-import { fileExistsSync, readJsonFile, readJsonFileOptional } from './lib/fs';
+import { fileExistsSync, readJsonFileOptional } from './lib/fs';
 
 let $ = (...args: Parameters<typeof _$>) => {
   let commandString = '';
@@ -54,9 +54,14 @@ export let build = async (): Promise<void> => {
 
   console.log('Setting up Node.js build environment...');
 
-  let packageJson = await readJsonFile<{ main?: string; scripts?: { build?: string } }>(
-    'package.json'
-  );
+  let packageJson = await readJsonFileOptional<{
+    main?: string;
+    scripts?: { build?: string };
+  }>('package.json');
+  if (!packageJson) {
+    console.log('No package.json found in the current directory. Exiting build.');
+  }
+
   let functionBayFile =
     (await readJsonFileOptional<Spec>('function-bay.json')) ??
     (await readJsonFileOptional<Spec>('metorial.json'));
@@ -71,28 +76,32 @@ export let build = async (): Promise<void> => {
 
   await $`bash -c "volta install node@${nodeJsVersionIdentifier}"`.env(env);
 
-  if (fileExistsSync('yarn.lock')) {
-    console.log('Detected yarn.lock, installing dependencies with Yarn...');
-    await $`bash -c "volta install yarn@1"`.env(env);
-    await $`bash -c "yarn install"`.env(env);
-  } else if (fileExistsSync('pnpm-lock.yaml')) {
-    console.log('Detected pnpm-lock.yaml, installing dependencies with pnpm...');
-    await $`bash -c "volta install pnpm"`.env(env);
-    await $`bash -c "pnpm install"`.env(env);
-  } else if (fileExistsSync('bun.lock')) {
-    console.log('Detected bun.lock, installing dependencies with Bun...');
-    await $`bash -c "volta install bun"`.env(env);
-    await $`bash -c "bun install"`.env(env);
+  if (packageJson) {
+    if (fileExistsSync('yarn.lock')) {
+      console.log('Detected yarn.lock, installing dependencies with Yarn...');
+      await $`bash -c "volta install yarn@1"`.env(env);
+      await $`bash -c "yarn install"`.env(env);
+    } else if (fileExistsSync('pnpm-lock.yaml')) {
+      console.log('Detected pnpm-lock.yaml, installing dependencies with pnpm...');
+      await $`bash -c "volta install pnpm"`.env(env);
+      await $`bash -c "pnpm install"`.env(env);
+    } else if (fileExistsSync('bun.lock')) {
+      console.log('Detected bun.lock, installing dependencies with Bun...');
+      await $`bash -c "volta install bun"`.env(env);
+      await $`bash -c "bun install"`.env(env);
+    } else {
+      console.log('Installing dependencies with npm...');
+      await $`bash -c "npm install"`.env(env);
+    }
   } else {
-    console.log('Installing dependencies with npm...');
-    await $`bash -c "npm install"`.env(env);
+    console.log('No package.json found, skipping dependency installation.');
   }
 
   if (functionBayFile?.scripts?.build) {
     let buildScript = functionBayFile.scripts.build;
     console.log(`Detected build script: "${buildScript}"`);
     await $`bash -c ${buildScript}`.env(env);
-  } else if (packageJson.scripts?.build) {
+  } else if (packageJson?.scripts?.build) {
     console.log(`Detected build script in package.json: "${packageJson.scripts.build}"`);
     await $`bash -c "npm run build"`.env(env);
   } else {
@@ -101,7 +110,7 @@ export let build = async (): Promise<void> => {
 
   let potentialEntrypoints = cleanup([
     functionBayFile?.entrypoint,
-    packageJson.main,
+    packageJson?.main,
 
     ...tryDirs(tryExtensions('index')),
     ...tryDirs(tryExtensions('main')),
@@ -141,6 +150,7 @@ export let build = async (): Promise<void> => {
 
   await Function.create({
     runtime: {
+      identifier: '@function-bay/nodejs',
       layer: Runtime.layer,
       handler: launcher.handler,
       runtime: {

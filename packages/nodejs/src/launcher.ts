@@ -53,17 +53,14 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        message: "Payload received",
-        received: data
-      })
+      body: JSON.stringify({ result })
     };
   } catch (err) {
     if (typeof err == 'object' && err.__function_bay_error) {
       let result = err.toResponse();
       return {
-        statusCode: result.statusCode || 500,
-        body: JSON.stringify(result)
+        statusCode: 500,
+        body: JSON.stringify({ error: result })
       };
     }
 

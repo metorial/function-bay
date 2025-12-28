@@ -182,9 +182,15 @@ model FunctionDeploymentStep {
   endedAt   DateTime?
 }
 
+enum FunctionVersionStatus {
+  active
+  deleted
+}
+
 model FunctionVersion {
-  oid BigInt @id
-  id  String @unique
+  oid    BigInt                @id
+  id     String                @unique
+  status FunctionVersionStatus
 
   identifier String
   name       String
@@ -197,6 +203,12 @@ model FunctionVersion {
 
   /// [FunctionConfiguration]
   configuration Json
+
+  /// [FunctionVersionProviderData]
+  providerData Json
+
+  // [FunctionVersionManifest]
+  manifest Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

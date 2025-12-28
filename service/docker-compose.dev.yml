@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: function-bay
       POSTGRES_DB: function-bay
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data2:/var/lib/postgresql/data
     networks:
       - function-bay-network
 
@@ -89,7 +89,7 @@ services:
       DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
 
       OBJECT_STORAGE_URL: http://object-storage:52010
-      FORGE_API_URL: http://forge:52020
+      FORGE_API_URL: http://forge:52020/metorial-forge
 
       LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}
       LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-}
@@ -109,7 +109,7 @@ services:
       - function-bay-network
 
 volumes:
-  postgres_data:
+  postgres_data2:
     driver: local
   object-store-data:
     driver: local
