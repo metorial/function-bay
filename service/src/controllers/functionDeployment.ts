@@ -1,7 +1,7 @@
 import { functionBayRuntimeSpec } from '@function-bay/types';
 import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
-import { functionDeploymentPresenter } from '../presenters';
+import { functionDeploymentPresenter, functionDeploymentStepPresenter } from '../presenters';
 import { functionDeploymentService } from '../services';
 import { app } from './_app';
 import { functionApp } from './function';
@@ -10,12 +10,12 @@ export let functionDeploymentApp = functionApp.use(async ctx => {
   let functionDeploymentId = ctx.body.functionDeploymentId;
   if (!functionDeploymentId) throw new Error('Function Deployment ID is required');
 
-  let version = await functionDeploymentService.getFunctionDeploymentById({
+  let deployment = await functionDeploymentService.getFunctionDeploymentById({
     id: functionDeploymentId,
     function: ctx.function
   });
 
-  return { version };
+  return { deployment };
 });
 
 export let functionDeploymentController = app.controller({
@@ -85,8 +85,26 @@ export let functionDeploymentController = app.controller({
     .input(
       v.object({
         instanceId: v.string(),
-        functionId: v.string()
+        functionId: v.string(),
+        functionDeploymentId: v.string()
       })
     )
-    .do(async ctx => functionDeploymentPresenter(ctx.version))
+    .do(async ctx => functionDeploymentPresenter(ctx.deployment)),
+
+  getOutput: functionDeploymentApp
+    .handler()
+    .input(
+      v.object({
+        instanceId: v.string(),
+        functionId: v.string(),
+        functionDeploymentId: v.string()
+      })
+    )
+    .do(async ctx => {
+      let output = await functionDeploymentService.getFunctionDeploymentOutput({
+        deployment: ctx.deployment
+      });
+
+      return output.steps.map(functionDeploymentStepPresenter);
+    })
 });

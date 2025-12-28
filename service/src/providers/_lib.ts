@@ -99,13 +99,12 @@ export class ProviderImpl {
     return this.#workflow;
   }
 
-  async getRuntime(runtime: FunctionBayRuntimeSpec): Promise<{
-    runtime: FunctionBayRuntimeConfig;
-    layer: FunctionBayLayer;
-    workflow: ForgeWorkflowStep[];
-    identifier: string;
-  }> {
-    return await this.#getRuntime(runtime);
+  get getRuntime() {
+    return this.#getRuntime;
+  }
+
+  get deployFunction() {
+    return this.#deployFunction;
   }
 
   get invokeFunction() {

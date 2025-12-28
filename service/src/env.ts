@@ -29,6 +29,6 @@ export let env = createValidatedEnv({
     LAMBDA_AWS_ACCESS_KEY_ID: v.optional(v.string()),
     LAMBDA_AWS_SECRET_ACCESS_KEY: v.optional(v.string()),
 
-    LAMBDA_ROLE_ARN: v.optional(v.string())
+    LAMBDA_EXECUTION_ROLE_ARN: v.optional(v.string())
   }
 });

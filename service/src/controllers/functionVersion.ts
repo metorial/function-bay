@@ -43,7 +43,8 @@ export let functionVersionController = app.controller({
     .input(
       v.object({
         instanceId: v.string(),
-        functionId: v.string()
+        functionId: v.string(),
+        functionVersionId: v.string()
       })
     )
     .do(async ctx => functionVersionPresenter(ctx.version))

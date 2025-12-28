@@ -9,6 +9,7 @@
   ],
   "compilerOptions": {
     "outDir": "dist",
-    "module": "esnext"
+    "module": "esnext",
+    "types": ["bun"]
   }
 }
