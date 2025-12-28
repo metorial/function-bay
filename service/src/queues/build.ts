@@ -162,11 +162,16 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
       return;
     }
 
-    await deployToRuntimeQueue.add({
-      deploymentId: data.deploymentId,
-      outputUrl: outputArtifact.url.url,
-      manifest: valRes.value as any
-    });
+    await deployToRuntimeQueue.add(
+      {
+        deploymentId: data.deploymentId,
+        outputUrl: outputArtifact.url.url,
+        manifest: valRes.value as any
+      },
+      {
+        delay: 5000
+      }
+    );
   } else {
     await errorQueue.add({
       deploymentId: data.deploymentId,
@@ -198,44 +203,58 @@ let deployToRuntimeQueueProcessor = deployToRuntimeQueue.process(async data => {
   });
   if (!deployment) throw new QueueRetryError();
 
-  let output = JSON.stringify([Date.now(), 'Deploying function to runtime...']);
-  await db.functionDeploymentStep.updateMany({
-    where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
-    data: { status: 'running', output }
-  });
+  try {
+    let output = JSON.stringify([Date.now(), 'Deploying function to runtime...']);
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'running', output }
+    });
 
-  let versionId = await ID.generateId('functionVersion');
+    let versionId = await ID.generateId('functionVersion');
 
-  let env = JSON.parse(
-    await encryption.decrypt({
-      entityId: deployment.id,
-      encrypted: deployment.encryptedEnvironmentVariables
-    })
-  );
+    let env = JSON.parse(
+      await encryption.decrypt({
+        entityId: deployment.id,
+        encrypted: deployment.encryptedEnvironmentVariables
+      })
+    );
 
-  let res = await defaultProvider.deployFunction({
-    functionDeployment: deployment,
-    function: deployment.function,
-    functionVersion: { id: versionId },
-    runtime: deployment.runtime,
-    runtimeConfig: data.manifest.runtime,
-    zipFileUrl: data.outputUrl,
-    env
-  });
+    let res = await defaultProvider.deployFunction({
+      functionDeployment: deployment,
+      function: deployment.function,
+      functionVersion: { id: versionId },
+      runtime: deployment.runtime,
+      runtimeConfig: data.manifest.runtime,
+      zipFileUrl: data.outputUrl,
+      env
+    });
 
-  output += `\n${JSON.stringify([Date.now(), 'Function deployed successfully.'])}`;
-  await db.functionDeploymentStep.updateMany({
-    where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
-    data: { status: 'succeeded', output }
-  });
+    output += `\n${JSON.stringify([Date.now(), 'Function deployed successfully.'])}`;
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'succeeded', output }
+    });
 
-  await deployToFunctionBayQueue.add({
-    deploymentId: deployment.id,
-    manifest: data.manifest,
-    outputUrl: data.outputUrl,
-    providerData: res.providerData,
-    functionVersionId: versionId
-  });
+    await deployToFunctionBayQueue.add({
+      deploymentId: deployment.id,
+      manifest: data.manifest,
+      outputUrl: data.outputUrl,
+      providerData: res.providerData,
+      functionVersionId: versionId
+    });
+  } catch (err: any) {
+    let output = JSON.stringify([Date.now(), `Error deploying function: ${err.message}`]);
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'failed', output }
+    });
+
+    await errorQueue.add({
+      deploymentId: deployment.id,
+      code: 'deploy_runtime_error',
+      message: `Error deploying function to runtime: ${err.message}`
+    });
+  }
 });
 
 let deployToFunctionBayQueue = createQueue<{
@@ -300,6 +319,10 @@ let succeededQueueProcessor = succeededQueue.process(async data => {
   await db.functionDeployment.update({
     where: { oid: deployment.oid },
     data: { status: 'succeeded' }
+  });
+  await db.function.update({
+    where: { oid: deployment.functionOid },
+    data: { currentVersionOid: deployment.functionVersionOid }
   });
 
   await cleanupQueue.add({ deploymentId: deployment.id }, { delay: 60000 });
