@@ -27,7 +27,8 @@
   "scripts": {
     "test": "vitest run --passWithNoTests",
     "lint": "prettier src/**/*.ts --check",
-    "build": "rm -rf ./dist && tsup"
+    "build": "rm -rf ./dist && tsup",
+    "prepublish": "npm run build"
   },
   "devDependencies": {
     "microbundle": "^0.15.1",
