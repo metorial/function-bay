@@ -1,9 +1,9 @@
-import { forgeApi } from './controllers';
+import { functionBayApi } from './controllers';
 
 console.log('Server is running');
 
 Bun.serve({
-  fetch: forgeApi,
+  fetch: functionBayApi,
   port: 52030
 });
 

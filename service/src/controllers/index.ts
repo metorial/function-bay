@@ -17,7 +17,9 @@ export let rootController = app.controller({
   functionDeployment: functionDeploymentController
 });
 
-export let forgeRPC = createServer({})(rootController);
-export let forgeApi = apiMux([{ endpoint: rpcMux({ path: '/metorial-forge' }, [forgeRPC]) }]);
+export let functionBayRPC = createServer({})(rootController);
+export let functionBayApi = apiMux([
+  { endpoint: rpcMux({ path: '/metorial-function-bay' }, [functionBayRPC]) }
+]);
 
-export type ForgeClient = InferClient<typeof rootController>;
+export type FunctionBayClient = InferClient<typeof rootController>;
