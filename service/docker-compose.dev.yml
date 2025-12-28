@@ -89,6 +89,8 @@ services:
       DEFAULT_PROVIDER: ${DEFAULT_PROVIDER}
 
       OBJECT_STORAGE_URL: http://object-storage:52010
+      BUNDLE_BUCKET_NAME: bundles
+
       FORGE_API_URL: http://forge:52020/metorial-forge
 
       LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}

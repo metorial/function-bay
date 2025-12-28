@@ -8,7 +8,8 @@ export let env = createValidatedEnv({
   },
 
   storage: {
-    OBJECT_STORAGE_URL: v.string()
+    OBJECT_STORAGE_URL: v.string(),
+    BUNDLE_BUCKET_NAME: v.string()
   },
 
   encryption: {

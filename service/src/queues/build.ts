@@ -2,6 +2,7 @@ import { functionBayRuntimeConfig, type FunctionBayRuntimeConfig } from '@functi
 import { generatePlainId } from '@lowerdeck/id';
 import { combineQueueProcessors, createQueue, QueueRetryError } from '@lowerdeck/queue';
 import { v } from '@lowerdeck/validation';
+import { Readable } from 'stream';
 import { db } from '../db';
 import { encryption } from '../encryption';
 import { env } from '../env';
@@ -15,6 +16,7 @@ import {
   OUTPUT_ARTIFACT_NAME,
   OUTPUT_ZIP_PATH
 } from '../providers/const';
+import { storage } from '../storage';
 
 export let startBuildQueue = createQueue<{
   deploymentId: string;
@@ -277,6 +279,15 @@ let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async d
   });
   if (!deployment) throw new QueueRetryError();
 
+  let bundle = await db.functionBundle.create({
+    data: {
+      oid: snowflake.nextId(),
+      status: 'uploading',
+      id: await ID.generateId('functionBundle'),
+      functionOid: deployment.functionOid
+    }
+  });
+
   let version = await db.functionVersion.create({
     data: {
       oid: snowflake.nextId(),
@@ -288,6 +299,7 @@ let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async d
 
       functionOid: deployment.functionOid,
       runtimeOid: deployment.runtimeOid,
+      functionBundleOid: bundle.oid,
 
       configuration: deployment.configuration,
       providerData: data.providerData,
@@ -301,6 +313,12 @@ let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async d
   });
 
   await succeededQueue.add({ deploymentId: deployment.id });
+
+  await uploadBundleQueue.add({
+    deploymentId: deployment.id,
+    bundleId: bundle.id,
+    outputUrl: data.outputUrl
+  });
 });
 
 let succeededQueue = createQueue<{
@@ -379,6 +397,45 @@ let errorQueueProcessor = errorQueue.process(async data => {
   await cleanupQueue.add({ deploymentId: deployment.id }, { delay: 60000 });
 });
 
+let uploadBundleQueue = createQueue<{
+  deploymentId: string;
+  bundleId: string;
+  outputUrl: string;
+}>({
+  name: 'fbay/build/upbndl',
+  redisUrl: env.service.REDIS_URL
+});
+
+let uploadBundleQueueProcessor = uploadBundleQueue.process(async data => {
+  let storageKey = `bundles/${data.bundleId}.zip`;
+  let bucket = env.storage.BUNDLE_BUCKET_NAME;
+
+  try {
+    await storage.putObject(
+      bucket,
+      storageKey,
+      await fetch(data.outputUrl).then(res => Readable.fromWeb(res.body!) as any),
+      'application/zip'
+    );
+
+    await db.functionBundle.updateMany({
+      where: { id: data.bundleId },
+      data: {
+        status: 'available',
+        storageKey,
+        bucket
+      }
+    });
+  } catch (err) {
+    await db.functionBundle.updateMany({
+      where: { id: data.bundleId },
+      data: { status: 'failed' }
+    });
+
+    throw err; // Throw to retry, but we mark the bundle as failed already
+  }
+});
+
 let cleanupQueue = createQueue<{
   deploymentId: string;
 }>({
@@ -401,5 +458,6 @@ export let buildProcessors = combineQueueProcessors([
   succeededQueueProcessor,
   errorQueueProcessor,
   cleanupQueueProcessor,
-  deployToFunctionBayQueueProcessor
+  deployToFunctionBayQueueProcessor,
+  uploadBundleQueueProcessor
 ]);
