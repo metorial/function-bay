@@ -3,32 +3,88 @@ import type {
   FunctionBayRuntimeConfig,
   FunctionBayRuntimeSpec
 } from '@function-bay/types';
-import type { Provider } from '../../prisma/generated/client';
+import type {
+  Function,
+  FunctionDeployment,
+  FunctionVersion,
+  Provider,
+  Runtime
+} from '../../prisma/generated/client';
 import type { ForgeWorkflowStep } from '../forge';
+
+export interface ProviderRuntimeResult {
+  runtime: FunctionBayRuntimeConfig;
+  layer: FunctionBayLayer;
+  workflow: ForgeWorkflowStep[];
+  identifier: string;
+}
+
+export interface ProviderDeployFunctionParams {
+  functionVersion: { id: string };
+  function: Function;
+  functionDeployment: FunctionDeployment;
+  runtimeConfig: FunctionBayRuntimeConfig;
+  runtime: Runtime;
+  env: Record<string, string>;
+  zipFileUrl: string;
+}
+
+export interface ProviderDeployFunctionResult {
+  providerData: Record<string, any>;
+}
+
+export interface FunctionInvocationParams {
+  functionVersion: FunctionVersion;
+  function: Function;
+  payload: Record<string, any>;
+  providerData: any;
+}
+
+export type FunctionInvocationResult = (
+  | {
+      type: 'success';
+      result: {
+        error?: Record<string, any>;
+        result?: any;
+      };
+    }
+  | {
+      type: 'error';
+      error: {
+        code: any;
+        message: any;
+      };
+      internalError?: string;
+    }
+) & {
+  logs: [number, string][];
+  computeTimeMs: number;
+  billedTimeMs: number;
+};
 
 export class ProviderImpl {
   #provider: Provider;
   #workflow: ForgeWorkflowStep[];
-  #getRuntime: (runtime: FunctionBayRuntimeSpec) => Promise<{
-    runtime: FunctionBayRuntimeConfig;
-    layer: FunctionBayLayer;
-    workflow: ForgeWorkflowStep[];
-    identifier: string;
-  }>;
+  #getRuntime: (runtime: FunctionBayRuntimeSpec) => Promise<ProviderRuntimeResult>;
+  #deployFunction: (
+    params: ProviderDeployFunctionParams
+  ) => Promise<ProviderDeployFunctionResult>;
+  #invokeFunction: (d: FunctionInvocationParams) => Promise<FunctionInvocationResult>;
 
   constructor(d: {
     provider: Provider;
     workflow: ForgeWorkflowStep[];
-    getRuntime: (runtime: FunctionBayRuntimeSpec) => Promise<{
-      runtime: FunctionBayRuntimeConfig;
-      layer: FunctionBayLayer;
-      workflow: ForgeWorkflowStep[];
-      identifier: string;
-    }>;
+    getRuntime: (runtime: FunctionBayRuntimeSpec) => Promise<ProviderRuntimeResult>;
+    deployFunction: (
+      params: ProviderDeployFunctionParams
+    ) => Promise<ProviderDeployFunctionResult>;
+    invokeFunction: (d: FunctionInvocationParams) => Promise<FunctionInvocationResult>;
   }) {
     this.#provider = d.provider;
     this.#workflow = d.workflow;
     this.#getRuntime = d.getRuntime;
+    this.#deployFunction = d.deployFunction;
+    this.#invokeFunction = d.invokeFunction;
   }
 
   get identifier() {
@@ -50,5 +106,9 @@ export class ProviderImpl {
     identifier: string;
   }> {
     return await this.#getRuntime(runtime);
+  }
+
+  get invokeFunction() {
+    return this.#invokeFunction;
   }
 }

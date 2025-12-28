@@ -143,11 +143,16 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
       return;
     }
 
-    await deployToRuntimeQueue.add({
-      deploymentId: data.deploymentId,
-      outputUrl: outputArtifact.url.url,
-      manifest: valRes.value as any
-    });
+    await deployToRuntimeQueue.add(
+      {
+        deploymentId: data.deploymentId,
+        outputUrl: outputArtifact.url.url,
+        manifest: valRes.value as any
+      },
+      {
+        delay: 5000
+      }
+    );
   } else {
     await errorQueue.add({
       deploymentId: data.deploymentId,
@@ -175,19 +180,129 @@ let deployToRuntimeQueueProcessor = deployToRuntimeQueue.process(async data => {
   });
   if (!deployment) throw new QueueRetryError();
 
-  let output = JSON.stringify([Date.now(), 'Deploying function to runtime...']);
-  await db.functionDeploymentStep.updateMany({
-    where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
-    data: { status: 'running', output }
+  try {
+    let output = JSON.stringify([Date.now(), 'Deploying function to runtime...']);
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'running', output }
+    });
+
+    let versionId = await ID.generateId('functionVersion');
+
+    let env = JSON.parse(
+      await encryption.decrypt({
+        entityId: deployment.id,
+        encrypted: deployment.encryptedEnvironmentVariables
+      })
+    );
+
+    let res = await defaultProvider.deployFunction({
+      functionDeployment: deployment,
+      function: deployment.function,
+      functionVersion: { id: versionId },
+      runtime: deployment.runtime,
+      runtimeConfig: data.manifest.runtime,
+      zipFileUrl: data.outputUrl,
+      env
+    });
+
+    output += `\n${JSON.stringify([Date.now(), 'Function deployed successfully.'])}`;
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'succeeded', output }
+    });
+
+    await deployToFunctionBayQueue.add({
+      deploymentId: deployment.id,
+      manifest: data.manifest,
+      outputUrl: data.outputUrl,
+      providerData: res.providerData,
+      functionVersionId: versionId
+    });
+  } catch (err: any) {
+    let output = JSON.stringify([Date.now(), `Error deploying function: ${err.message}`]);
+    await db.functionDeploymentStep.updateMany({
+      where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
+      data: { status: 'failed', output }
+    });
+
+    await errorQueue.add({
+      deploymentId: deployment.id,
+      code: 'deploy_runtime_error',
+      message: `Error deploying function to runtime: ${err.message}`
+    });
+  }
+});
+
+let deployToFunctionBayQueue = createQueue<{
+  deploymentId: string;
+  manifest: {
+    hash: string;
+    runtime: FunctionBayRuntimeConfig;
+  };
+  outputUrl: string;
+  providerData: any;
+  functionVersionId: string;
+}>({
+  name: 'fbay/build/dfun',
+  redisUrl: env.service.REDIS_URL
+});
+
+let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async data => {
+  let deployment = await db.functionDeployment.findFirst({
+    where: { id: data.deploymentId }
+  });
+  if (!deployment) throw new QueueRetryError();
+
+  let version = await db.functionVersion.create({
+    data: {
+      oid: snowflake.nextId(),
+      id: data.functionVersionId,
+      identifier: generatePlainId(12),
+
+      name: deployment.name,
+      status: 'active',
+
+      functionOid: deployment.functionOid,
+      runtimeOid: deployment.runtimeOid,
+
+      configuration: deployment.configuration,
+      providerData: data.providerData,
+      manifest: data.manifest
+    }
   });
 
-  // TODO: deploy to runtime
-
-  output += `\n${JSON.stringify([Date.now(), 'Function deployed successfully.'])}`;
-  await db.functionDeploymentStep.updateMany({
-    where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
-    data: { status: 'succeeded', output }
+  await db.functionDeployment.update({
+    where: { oid: deployment.oid },
+    data: { functionVersionOid: version.oid }
   });
+
+  await succeededQueue.add({ deploymentId: deployment.id });
+});
+
+let succeededQueue = createQueue<{
+  deploymentId: string;
+}>({
+  name: 'fbay/build/suc',
+  redisUrl: env.service.REDIS_URL
+});
+
+let succeededQueueProcessor = succeededQueue.process(async data => {
+  let deployment = await db.functionDeployment.findFirst({
+    where: { id: data.deploymentId }
+  });
+  if (!deployment) throw new QueueRetryError();
+
+  await db.functionDeployment.update({
+    where: { oid: deployment.oid },
+    data: { status: 'succeeded' }
+  });
+  await db.function.update({
+    where: { oid: deployment.functionOid },
+    data: { currentVersionOid: deployment.functionVersionOid }
+  });
+
+  await cleanupQueue.add({ deploymentId: deployment.id }, { delay: 60000 });
 });
 
 let errorQueue = createQueue<{

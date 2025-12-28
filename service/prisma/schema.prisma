@@ -158,6 +158,7 @@ enum FunctionDeploymentStepStatus {
   running
   succeeded
   failed
+  canceled
 }
 
 enum FunctionDeploymentStepType {
@@ -198,11 +199,41 @@ model FunctionVersion {
   /// [FunctionConfiguration]
   configuration Json
 
+  /// [FunctionVersionProviderData]
+  providerData Json
+
+  /// [FunctionVersionManifest]
+  manifest Json
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
   functions           Function[]           @relation(name: "CurrentVersion")
   functionDeployments FunctionDeployment[]
+  functionInvocations FunctionInvocation[]
 
   @@unique([identifier, functionOid])
+}
+
+enum FunctionInvocationStatus {
+  succeeded
+  failed
+}
+
+model FunctionInvocation {
+  oid BigInt @id
+  id  String @unique
+
+  status FunctionInvocationStatus
+
+  functionVersionOid BigInt
+  functionVersion    FunctionVersion @relation(fields: [functionVersionOid], references: [oid])
+
+  error Json
+  logs  String
+
+  computeTimeMs Int
+  billedTimeMs  Int
+
+  createdAt DateTime @default(now())
 }

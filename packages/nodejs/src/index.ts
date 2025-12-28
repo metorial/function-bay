@@ -142,7 +142,7 @@ export let build = async (): Promise<void> => {
   await Function.create({
     runtime: {
       layer: Runtime.layer,
-      handler: launcher.handler,
+      handler: 'index.handler',
       runtime: {
         identifier: 'nodejs',
         version: nodeJsVersionIdentifier as '24.x'

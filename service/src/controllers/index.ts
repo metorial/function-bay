@@ -3,6 +3,7 @@ import { createServer, rpcMux, type InferClient } from '@lowerdeck/rpc-server';
 import { app } from './_app';
 import { functionController } from './function';
 import { functionDeploymentController } from './functionDeployment';
+import { functionInvocationController } from './functionInvocation';
 import { functionVersionController } from './functionVersion';
 import { instanceController } from './instance';
 import { providerController } from './provider';
@@ -14,7 +15,8 @@ export let rootController = app.controller({
   provider: providerController,
   function: functionController,
   functionVersion: functionVersionController,
-  functionDeployment: functionDeploymentController
+  functionDeployment: functionDeploymentController,
+  functionInvocation: functionInvocationController
 });
 
 export let functionBayRPC = createServer({})(rootController);

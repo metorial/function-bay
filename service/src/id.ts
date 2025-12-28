@@ -10,7 +10,8 @@ export let ID = createIdGenerator({
   function: idType.sorted('bfnc_'),
   functionVersion: idType.sorted('bfv_'),
   functionDeployment: idType.sorted('bfd_'),
-  functionDeploymentStep: idType.sorted('bfds_')
+  functionDeploymentStep: idType.sorted('bfds_'),
+  functionInvocation: idType.sorted('bfi_')
 });
 
 let workerIdBits = 12;

@@ -2,6 +2,7 @@ import { Paginator } from '@lowerdeck/pagination';
 import { v } from '@lowerdeck/validation';
 import { functionPresenter } from '../presenters/function';
 import { functionService } from '../services';
+import { functionInvocationService } from '../services/functionInvocation';
 import { app } from './_app';
 import { instanceApp } from './instance';
 
@@ -103,5 +104,24 @@ export let functionController = app.controller({
       });
 
       return functionPresenter(func);
-    })
+    }),
+
+  invoke: app
+    .handler()
+    .input(
+      v.object({
+        instanceId: v.string(),
+        functionId: v.string(),
+
+        payload: v.record(v.any())
+      })
+    )
+    .do(
+      async ctx =>
+        await functionInvocationService.invokeFunction({
+          functionId: ctx.input.functionId,
+          instanceId: ctx.input.instanceId,
+          payload: ctx.input.payload
+        })
+    )
 });
