@@ -91,7 +91,7 @@ class functionDeploymentServiceImpl {
       },
       include
     });
-    if (!functionDeployment) throw new ServiceError(notFoundError('function.version'));
+    if (!functionDeployment) throw new ServiceError(notFoundError('function.deployment'));
     return functionDeployment;
   }
 
@@ -126,7 +126,7 @@ class functionDeploymentServiceImpl {
           name: s.step.name,
           type: 'build' as const,
           status: s.step.status,
-          output: s.output,
+          logs: s.logs,
           createdAt: s.step.createdAt,
           startedAt: s.step.startedAt,
           endedAt: s.step.endedAt
@@ -137,10 +137,19 @@ class functionDeploymentServiceImpl {
           name: s.name,
           type: s.type,
           status: s.status,
-          output: s.output,
+
           createdAt: s.createdAt,
           startedAt: s.startedAt,
-          endedAt: s.endedAt
+          endedAt: s.endedAt,
+
+          logs: s.output.split('\n').map(line => {
+            let [ts, message] = JSON.parse(line);
+
+            return {
+              timestamp: ts,
+              message
+            };
+          })
         }))
       ]
     };

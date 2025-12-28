@@ -59,7 +59,7 @@ export let functionDeploymentStepPresenter = (step: {
   name: string;
   type: FunctionDeploymentStepType | 'build';
   status: FunctionDeploymentStepStatus;
-  output: string;
+  logs: { timestamp: number; message: string }[];
   createdAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
@@ -70,7 +70,7 @@ export let functionDeploymentStepPresenter = (step: {
   status: step.status,
   name: step.name,
 
-  output: step.output,
+  logs: step.logs,
   type: step.type,
 
   createdAt: step.createdAt,

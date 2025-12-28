@@ -78,11 +78,10 @@ export let deployFunction = async (d: {
     })
   );
 
-  console.log(res);
-
   return {
     providerData: {
-      functionArn: res.FunctionArn!
+      functionArn: res.FunctionArn!,
+      functionName: res.FunctionName!
     }
   };
 };
