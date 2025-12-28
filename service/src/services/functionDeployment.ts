@@ -142,14 +142,16 @@ class functionDeploymentServiceImpl {
           startedAt: s.startedAt,
           endedAt: s.endedAt,
 
-          logs: s.output.split('\n').map(line => {
-            let [ts, message] = JSON.parse(line);
+          logs: !s.output
+            ? []
+            : s.output.split('\n').map(line => {
+                let [ts, message] = JSON.parse(line);
 
-            return {
-              timestamp: ts,
-              message
-            };
-          })
+                return {
+                  timestamp: ts,
+                  message
+                };
+              })
         }))
       ]
     };

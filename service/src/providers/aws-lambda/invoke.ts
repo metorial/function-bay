@@ -54,6 +54,8 @@ export let invokeFunction = async (d: {
     billedTimeMs: -1
   };
 
+  let startTs = Date.now();
+
   try {
     res = await lambdaClient.send(
       new InvokeCommand({
@@ -98,7 +100,7 @@ export let invokeFunction = async (d: {
     let finalLogs: [number, string][] = [];
 
     if (requestId) {
-      let currentTimestamp = 0;
+      let currentTimestamp = startTs;
       for (let i = 0; i < productiveLogs.length; i++) {
         let line = productiveLogs[i];
         if (!line) continue;
@@ -108,7 +110,7 @@ export let invokeFunction = async (d: {
           if (!ts || !rest) continue;
 
           currentTimestamp = new Date(ts.trim()).getTime();
-          line = rest.trim().replace('\tERROR', '').replace('\tINFO', '');
+          line = rest.trim().replace('ERROR\t', '').replace('INFO\t', '');
         }
 
         finalLogs.push([currentTimestamp, line]);
