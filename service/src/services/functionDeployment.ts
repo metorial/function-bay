@@ -3,9 +3,10 @@ import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { generatePlainId } from '@lowerdeck/id';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Function, Instance } from '../../prisma/generated/client';
+import type { Function, FunctionDeployment, Instance } from '../../prisma/generated/client';
 import { db } from '../db';
 import { encryption } from '../encryption';
+import { forge } from '../forge';
 import { ID, snowflake } from '../id';
 import { defaultProvider } from '../providers';
 import { startBuildQueue } from '../queues/build';
@@ -41,17 +42,16 @@ class functionDeploymentServiceImpl {
       config: PrismaJson.FunctionConfiguration;
     };
   }) {
-    let identifier = generatePlainId(6);
-
     let providerRuntime = await defaultProvider.getRuntime(d.input.runtime);
 
     let id = await ID.generateId('functionDeployment');
+
     let deployment = await db.functionDeployment.create({
       data: {
         oid: snowflake.nextId(),
-        id: await ID.generateId('functionDeployment'),
+        id,
         status: 'pending',
-        identifier,
+        identifier: generatePlainId(12),
         name: d.input.name,
         configuration: d.input.config,
         runtimeOid: providerRuntime.runtime.oid,
@@ -93,6 +93,57 @@ class functionDeploymentServiceImpl {
     });
     if (!functionDeployment) throw new ServiceError(notFoundError('function.version'));
     return functionDeployment;
+  }
+
+  async getFunctionDeploymentOutput(d: { deployment: FunctionDeployment }) {
+    let func = await db.function.findFirstOrThrow({
+      where: {
+        oid: d.deployment.functionOid
+      },
+      include: {
+        instance: true
+      }
+    });
+
+    let steps = await db.functionDeploymentStep.findMany({
+      where: {
+        functionDeploymentOid: d.deployment.oid
+      }
+    });
+
+    let forgeLogs = d.deployment.forgeRunId
+      ? await forge.workflowRun.getOutput({
+          instanceId: func.instance.identifier,
+          workflowRunId: d.deployment.forgeRunId,
+          workflowId: d.deployment.forgeWorkflowId!
+        })
+      : null;
+
+    return {
+      steps: [
+        ...(forgeLogs ?? []).map(s => ({
+          id: `forge#${s.step.id}`,
+          name: s.step.name,
+          type: 'build' as const,
+          status: s.step.status,
+          output: s.output,
+          createdAt: s.step.createdAt,
+          startedAt: s.step.startedAt,
+          endedAt: s.step.endedAt
+        })),
+
+        ...steps.map(s => ({
+          id: `function-bay#${s.id}`,
+          name: s.name,
+          type: s.type,
+          status: s.status,
+          output: s.output,
+          createdAt: s.createdAt,
+          startedAt: s.startedAt,
+          endedAt: s.endedAt
+        }))
+      ]
+    };
   }
 
   async listFunctionDeployments(d: { function: Function }) {

@@ -2,6 +2,8 @@ import type {
   Function,
   FunctionDeployment,
   FunctionDeploymentStep,
+  FunctionDeploymentStepStatus,
+  FunctionDeploymentStepType,
   FunctionVersion,
   Provider,
   Runtime
@@ -50,4 +52,28 @@ export let functionDeploymentPresenter = (
     : null,
 
   createdAt: deployment.createdAt
+});
+
+export let functionDeploymentStepPresenter = (step: {
+  id: string;
+  name: string;
+  type: FunctionDeploymentStepType | 'build';
+  status: FunctionDeploymentStepStatus;
+  output: string;
+  createdAt: Date;
+  startedAt: Date | null;
+  endedAt: Date | null;
+}) => ({
+  object: 'function.deployment.step',
+
+  id: step.id,
+  status: step.status,
+  name: step.name,
+
+  output: step.output,
+  type: step.type,
+
+  createdAt: step.createdAt,
+  startedAt: step.startedAt,
+  endedAt: step.endedAt
 });

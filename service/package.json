@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "start": "bun ./src/server.ts",
-    "dev": "docker compose -p function-bay -f ./docker-compose.dev.yml up --pull always --build function-bay forge object-storage"
+    "dev": "docker compose -p function-bay -f ./docker-compose.dev.yml up --pull missing --build function-bay forge object-storage"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudwatch-logs": "^3.957.0",
-    "@aws-sdk/client-codebuild": "^3.957.0",
     "@aws-sdk/client-iam": "^3.957.0",
+    "@aws-sdk/client-lambda": "^3.958.0",
     "@function-bay/types": "^1.0.0",
     "@lowerdeck/api-mux": "^1.0.1",
     "@lowerdeck/canonicalize": "^1.0.4",

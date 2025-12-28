@@ -1,13 +1,20 @@
 import { functionBayRuntimeConfig, type FunctionBayRuntimeConfig } from '@function-bay/types';
+import { generatePlainId } from '@lowerdeck/id';
 import { combineQueueProcessors, createQueue, QueueRetryError } from '@lowerdeck/queue';
 import { v } from '@lowerdeck/validation';
 import { db } from '../db';
 import { encryption } from '../encryption';
 import { env } from '../env';
 import { ensureForgeWorkflow, forge } from '../forge';
+import { ID, snowflake } from '../id';
 import { defaultProvider } from '../providers';
 import { layer } from '../providers/aws-lambda/runtime';
-import { MANIFEST_ARTIFACT_NAME, MANIFEST_PATH, OUTPUT_ZIP_PATH } from '../providers/const';
+import {
+  MANIFEST_ARTIFACT_NAME,
+  MANIFEST_PATH,
+  OUTPUT_ARTIFACT_NAME,
+  OUTPUT_ZIP_PATH
+} from '../providers/const';
 
 export let startBuildQueue = createQueue<{
   deploymentId: string;
@@ -37,10 +44,12 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
     steps: defaultProvider.workflow
   });
 
-  let envVars: Record<string, string> = await encryption.decrypt({
-    entityId: deployment.id,
-    encrypted: deployment.encryptedEnvironmentVariables
-  });
+  let envVars: Record<string, string> = JSON.parse(
+    await encryption.decrypt({
+      entityId: deployment.id,
+      encrypted: deployment.encryptedEnvironmentVariables
+    })
+  );
 
   let run = await forge.workflowRun.create({
     instanceId: deployment.function.instance.identifier,
@@ -58,12 +67,13 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
 
   await db.functionDeployment.update({
     where: { oid: deployment.oid },
-    data: { status: 'running', forgeRunId: run.id, forgeWorkflowId: workflow.id }
+    data: { forgeRunId: run.id, forgeWorkflowId: workflow.id }
   });
 
   await monitorBuildQueue.add({
-    deploymentId: deployment.id,
+    hasStarted: false,
 
+    deploymentId: deployment.id,
     runId: run.id,
     workflowId: workflow.id,
     instanceId: deployment.function.instance.identifier
@@ -71,6 +81,7 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
 });
 
 let monitorBuildQueue = createQueue<{
+  hasStarted: boolean;
   deploymentId: string;
   runId: string;
   workflowId: string;
@@ -86,6 +97,14 @@ let monitorBuildQueueProcessor = monitorBuildQueue.process(async data => {
     workflowId: data.workflowId,
     workflowRunId: data.runId
   });
+
+  if (!data.hasStarted && run.status != 'pending') {
+    await db.functionDeployment.update({
+      where: { id: data.deploymentId },
+      data: { status: 'running' }
+    });
+    data.hasStarted = true;
+  }
 
   if (run.status == 'failed' || run.status == 'succeeded') {
     await workflowFinishedBuildQueue.add(data);
@@ -113,7 +132,7 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
 
   if (run.status == 'succeeded') {
     let manifestArtifact = run.artifacts.find(a => a.name === MANIFEST_ARTIFACT_NAME);
-    let outputArtifact = run.artifacts.find(a => a.name === OUTPUT_ZIP_PATH);
+    let outputArtifact = run.artifacts.find(a => a.name === OUTPUT_ARTIFACT_NAME);
 
     if (!manifestArtifact || !outputArtifact) {
       await errorQueue.add({
@@ -171,7 +190,11 @@ let deployToRuntimeQueue = createQueue<{
 
 let deployToRuntimeQueueProcessor = deployToRuntimeQueue.process(async data => {
   let deployment = await db.functionDeployment.findFirst({
-    where: { id: data.deploymentId }
+    where: { id: data.deploymentId },
+    include: {
+      function: true,
+      runtime: true
+    }
   });
   if (!deployment) throw new QueueRetryError();
 
@@ -181,13 +204,105 @@ let deployToRuntimeQueueProcessor = deployToRuntimeQueue.process(async data => {
     data: { status: 'running', output }
   });
 
-  // TODO: deploy to runtime
+  let versionId = await ID.generateId('functionVersion');
+
+  let env = JSON.parse(
+    await encryption.decrypt({
+      entityId: deployment.id,
+      encrypted: deployment.encryptedEnvironmentVariables
+    })
+  );
+
+  let res = await defaultProvider.deployFunction({
+    functionDeployment: deployment,
+    function: deployment.function,
+    functionVersion: { id: versionId },
+    runtime: deployment.runtime,
+    runtimeConfig: data.manifest.runtime,
+    zipFileUrl: data.outputUrl,
+    env
+  });
 
   output += `\n${JSON.stringify([Date.now(), 'Function deployed successfully.'])}`;
   await db.functionDeploymentStep.updateMany({
     where: { functionDeploymentOid: deployment.oid, type: 'deploy' },
     data: { status: 'succeeded', output }
   });
+
+  await deployToFunctionBayQueue.add({
+    deploymentId: deployment.id,
+    manifest: data.manifest,
+    outputUrl: data.outputUrl,
+    providerData: res.providerData,
+    functionVersionId: versionId
+  });
+});
+
+let deployToFunctionBayQueue = createQueue<{
+  deploymentId: string;
+  manifest: {
+    hash: string;
+    runtime: FunctionBayRuntimeConfig;
+  };
+  outputUrl: string;
+  providerData: any;
+  functionVersionId: string;
+}>({
+  name: 'fbay/build/dfun',
+  redisUrl: env.service.REDIS_URL
+});
+
+let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async data => {
+  let deployment = await db.functionDeployment.findFirst({
+    where: { id: data.deploymentId }
+  });
+  if (!deployment) throw new QueueRetryError();
+
+  let version = await db.functionVersion.create({
+    data: {
+      oid: snowflake.nextId(),
+      id: data.functionVersionId,
+      identifier: generatePlainId(12),
+
+      name: deployment.name,
+      status: 'active',
+
+      functionOid: deployment.functionOid,
+      runtimeOid: deployment.runtimeOid,
+
+      configuration: deployment.configuration,
+      providerData: data.providerData,
+      manifest: data.manifest
+    }
+  });
+
+  await db.functionDeployment.update({
+    where: { oid: deployment.oid },
+    data: { functionVersionOid: version.oid }
+  });
+
+  await succeededQueue.add({ deploymentId: deployment.id });
+});
+
+let succeededQueue = createQueue<{
+  deploymentId: string;
+}>({
+  name: 'fbay/build/suc',
+  redisUrl: env.service.REDIS_URL
+});
+
+let succeededQueueProcessor = succeededQueue.process(async data => {
+  let deployment = await db.functionDeployment.findFirst({
+    where: { id: data.deploymentId }
+  });
+  if (!deployment) throw new QueueRetryError();
+
+  await db.functionDeployment.update({
+    where: { oid: deployment.oid },
+    data: { status: 'succeeded' }
+  });
+
+  await cleanupQueue.add({ deploymentId: deployment.id }, { delay: 60000 });
 });
 
 let errorQueue = createQueue<{
@@ -218,6 +333,41 @@ let errorQueueProcessor = errorQueue.process(async data => {
       status: 'failed'
     }
   });
+
+  let deploymentStep = await db.functionDeploymentStep.findFirst({
+    where: {
+      functionDeploymentOid: deployment.oid,
+      type: 'deploy'
+    }
+  });
+
+  if (deploymentStep) {
+    await db.functionDeploymentStep.updateMany({
+      where: {
+        oid: deploymentStep.oid
+      },
+      data: {
+        status: 'failed',
+        output: `${deploymentStep.output}\n${JSON.stringify([Date.now(), `[Error ${data.code}]: ${data.message}`])}`
+      }
+    });
+  }
+
+  await cleanupQueue.add({ deploymentId: deployment.id }, { delay: 60000 });
+});
+
+let cleanupQueue = createQueue<{
+  deploymentId: string;
+}>({
+  name: 'fbay/build/cleanup',
+  redisUrl: env.service.REDIS_URL
+});
+
+let cleanupQueueProcessor = cleanupQueue.process(async data => {
+  await db.functionDeployment.updateMany({
+    where: { id: data.deploymentId },
+    data: { encryptedEnvironmentVariables: '' }
+  });
 });
 
 export let buildProcessors = combineQueueProcessors([
@@ -225,5 +375,8 @@ export let buildProcessors = combineQueueProcessors([
   monitorBuildQueueProcessor,
   workflowFinishedBuildQueueProcessor,
   deployToRuntimeQueueProcessor,
-  errorQueueProcessor
+  succeededQueueProcessor,
+  errorQueueProcessor,
+  cleanupQueueProcessor,
+  deployToFunctionBayQueueProcessor
 ]);
