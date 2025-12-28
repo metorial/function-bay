@@ -414,7 +414,7 @@ let uploadBundleQueueProcessor = uploadBundleQueue.process(async data => {
     await storage.putObject(
       bucket,
       storageKey,
-      await fetch(data.outputUrl).then(res => Readable.fromWeb(res.body!) as any),
+      await fetch(data.outputUrl).then(res => Readable.fromWeb(res.body! as any) as any),
       'application/zip'
     );
 

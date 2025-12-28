@@ -81,16 +81,6 @@ class functionServiceImpl {
       include
     });
   }
-
-  async deleteFunction(d: { function: Function }) {
-    throw new Error('Not implemented');
-
-    return await db.function.update({
-      where: { oid: d.function.oid },
-      data: { status: 'deleted' },
-      include
-    });
-  }
 }
 
 export let functionService = Service.create(
