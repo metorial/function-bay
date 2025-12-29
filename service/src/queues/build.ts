@@ -301,6 +301,8 @@ let deployToFunctionBayQueueProcessor = deployToFunctionBayQueue.process(async d
       runtimeOid: deployment.runtimeOid,
       functionBundleOid: bundle.oid,
 
+      encryptedEnvironmentVariables: deployment.encryptedEnvironmentVariables,
+
       configuration: deployment.configuration,
       providerData: data.providerData,
       manifest: data.manifest
