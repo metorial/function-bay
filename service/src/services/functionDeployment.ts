@@ -144,14 +144,18 @@ class functionDeploymentServiceImpl {
 
           logs: !s.output
             ? []
-            : s.output.split('\n').map(line => {
-                let [ts, message] = JSON.parse(line);
+            : s.output
+                .split('\n')
+                .map(line => {
+                  if (!line.startsWith('[')) return undefined!;
+                  let [ts, message] = JSON.parse(line);
 
-                return {
-                  timestamp: ts,
-                  message
-                };
-              })
+                  return {
+                    timestamp: ts,
+                    message
+                  };
+                })
+                .filter(Boolean)
         }))
       ]
     };
