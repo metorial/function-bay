@@ -10,7 +10,7 @@ Function Bay is a serverless function deployment and orchestration service that 
 - **Runtime Support**: Multiple runtime environments including Node.js, Python, Ruby, and Java
 - **Function Invocation**: Direct function invocation with payload support and detailed logging
 - **Version Control**: Track and manage different versions of your functions
-- **Instance Isolation**: Multi-tenant support with instance-based resource isolation
+- **Tenant Isolation**: Multi-tenant architecture for isolated projects
 - **Configuration Management**: Memory, timeout, and environment variable configuration per deployment
 
 ## Quick Start
@@ -163,20 +163,20 @@ let client = createFunctionBayClient({
 
 ### Core API Examples
 
-#### 1. Instance Management
+#### 1. Tenant Management
 
-Instances represent isolated tenants or projects:
+Tenants represent isolated tenants or projects:
 
 ```typescript
-// Create/update an instance
-let instance = await client.instance.upsert({
+// Create/update an tenant
+let tenant = await client.tenant.upsert({
   name: 'My Project',
   identifier: 'my-project',
 });
 
-// Get an instance
-let retrievedInstance = await client.instance.get({
-  instanceId: instance.id,
+// Get an tenant
+let retrievedTenant = await client.tenant.get({
+  tenantId: tenant.id,
 });
 ```
 
@@ -187,7 +187,7 @@ List available runtimes for your functions:
 ```typescript
 // List available runtimes
 let runtimes = await client.runtime.list({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   limit: 10,
   order: 'desc',
 });
@@ -208,27 +208,27 @@ Functions define serverless function resources:
 ```typescript
 // Create/update a function
 let func = await client.function.upsert({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   name: 'My API Handler',
   identifier: 'api-handler',
 });
 
 // List functions
 let functions = await client.function.list({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   limit: 10,
   order: 'desc',
 });
 
 // Get a specific function
 let functionDetails = await client.function.get({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
 });
 
 // Update a function
 let updated = await client.function.update({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   name: 'Updated API Handler',
 });
@@ -241,7 +241,7 @@ Deploy function code with specific runtime and configuration:
 ```typescript
 // Create a deployment
 let deployment = await client.functionDeployment.create({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   name: 'v1.0.0',
   runtime: {
@@ -285,7 +285,7 @@ console.log('Status:', deployment.status);
 
 // List deployments
 let deployments = await client.functionDeployment.list({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   limit: 20,
   order: 'desc',
@@ -293,7 +293,7 @@ let deployments = await client.functionDeployment.list({
 
 // Get deployment details
 let deploymentDetails = await client.functionDeployment.get({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   functionDeploymentId: deployment.id,
 });
@@ -310,7 +310,7 @@ Retrieve build and deployment logs:
 ```typescript
 // Get all deployment step outputs
 let outputs = await client.functionDeployment.getOutput({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   functionDeploymentId: deployment.id,
 });
@@ -334,7 +334,7 @@ List and manage deployed function versions:
 ```typescript
 // List function versions
 let versions = await client.functionVersion.list({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   limit: 10,
   order: 'desc',
@@ -349,7 +349,7 @@ for (let version of versions.items) {
 
 // Get a specific version
 let version = await client.functionVersion.get({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   functionVersionId: versions.items[0].id,
 });
@@ -362,7 +362,7 @@ Execute deployed functions with custom payloads:
 ```typescript
 // Invoke a function
 let invocation = await client.function.invoke({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   payload: {
     action: 'process',
@@ -384,7 +384,7 @@ View invocation logs and metrics:
 ```typescript
 // List function invocations
 let invocations = await client.functionInvocation.list({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   limit: 20,
   order: 'desc',
@@ -403,7 +403,7 @@ for (let inv of invocations.items) {
 
 // Get detailed invocation information
 let invocationDetails = await client.functionInvocation.get({
-  instanceId: instance.id,
+  tenantId: tenant.id,
   functionId: func.id,
   functionInvocationId: invocations.items[0].id,
 });

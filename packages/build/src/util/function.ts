@@ -27,7 +27,7 @@ export class Function {
 
   private constructor(func: FunctionDefinition) {
     if (existingFunctionRef.current) {
-      throw new Error('Only one Function instance can be created per build.');
+      throw new Error('Only one Function tenant can be created per build.');
     }
     existingFunctionRef.current = true;
 

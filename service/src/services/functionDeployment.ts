@@ -3,7 +3,7 @@ import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { generatePlainId } from '@lowerdeck/id';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Function, FunctionDeployment, Instance } from '../../prisma/generated/client';
+import type { Function, FunctionDeployment, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { encryption } from '../encryption';
 import { forge } from '../forge';
@@ -29,7 +29,7 @@ let include = {
 class functionDeploymentServiceImpl {
   async createFunctionDeployment(d: {
     function: Function;
-    instance: Instance;
+    tenant: Tenant;
     input: {
       name: string;
       env: Record<string, string>;
@@ -101,7 +101,7 @@ class functionDeploymentServiceImpl {
         oid: d.deployment.functionOid
       },
       include: {
-        instance: true
+        tenant: true
       }
     });
 
@@ -113,7 +113,7 @@ class functionDeploymentServiceImpl {
 
     let forgeLogs = d.deployment.forgeRunId
       ? await forge.workflowRun.getOutput({
-          instanceId: func.instance.identifier,
+          tenantId: func.tenant.identifier,
           workflowRunId: d.deployment.forgeRunId,
           workflowId: d.deployment.forgeWorkflowId!
         })

@@ -1,7 +1,7 @@
 import { canonicalize } from '@lowerdeck/canonicalize';
 import { Hash } from '@lowerdeck/hash';
 import { createForgeClient } from '@metorial-services/forge-client';
-import type { Instance, Runtime } from '../prisma/generated/client';
+import type { Runtime, Tenant } from '../prisma/generated/client';
 import { db } from './db';
 import { env } from './env';
 import { snowflake } from './id';
@@ -31,38 +31,38 @@ export type ForgeWorkflowStep =
       artifactName: string;
     };
 
-export let ensureForgeInstance = async (instance: Instance) =>
-  await forge.instance.upsert({
-    name: instance.name,
-    identifier: instance.identifier
+export let ensureForgeTenant = async (tenant: Tenant) =>
+  await forge.tenant.upsert({
+    name: tenant.name,
+    identifier: tenant.identifier
   });
 
 export let ensureForgeWorkflow = async (d: {
-  instance: Instance;
+  tenant: Tenant;
   runtime: Runtime;
 
   steps: ForgeWorkflowStep[];
 }) => {
   let workflow = await db.runtimeForgeWorkflow.findUnique({
     where: {
-      runtimeOid_instanceOid: {
+      runtimeOid_tenantOid: {
         runtimeOid: d.runtime.oid,
-        instanceOid: d.instance.oid
+        tenantOid: d.tenant.oid
       }
     }
   });
 
   if (workflow) {
     return await forge.workflow.get({
-      instanceId: workflow.forgeInstanceId,
+      tenantId: workflow.forgeTenantId,
       workflowId: workflow.forgeWorkflowId
     });
   }
 
-  let instance = await ensureForgeInstance(d.instance);
+  let tenant = await ensureForgeTenant(d.tenant);
 
   let createdWorkflow = await forge.workflow.upsert({
-    instanceId: instance.id,
+    tenantId: tenant.id,
     identifier: `fncbay_builder_${d.runtime.identifier}`,
     name: `Function Bay Builder for ${d.runtime.name}`
   });
@@ -70,7 +70,7 @@ export let ensureForgeWorkflow = async (d: {
   let hash = await Hash.sha256(canonicalize(d.steps));
 
   let version = await forge.workflowVersion.create({
-    instanceId: instance.id,
+    tenantId: tenant.id,
     workflowId: createdWorkflow.id,
     name: `Function Bay (${hash.slice(0, 8)})`,
     steps: d.steps
@@ -79,17 +79,17 @@ export let ensureForgeWorkflow = async (d: {
   // Upsert to avoid race conditions
   await db.runtimeForgeWorkflow.upsert({
     where: {
-      runtimeOid_instanceOid: {
+      runtimeOid_tenantOid: {
         runtimeOid: d.runtime.oid,
-        instanceOid: d.instance.oid
+        tenantOid: d.tenant.oid
       }
     },
     create: {
       oid: await snowflake.nextId(),
       runtimeOid: d.runtime.oid,
-      instanceOid: d.instance.oid,
+      tenantOid: d.tenant.oid,
       forgeWorkflowId: createdWorkflow.id,
-      forgeInstanceId: instance.id,
+      forgeTenantId: tenant.id,
       forgeWorkflowVersionId: version.id
     },
     update: {}

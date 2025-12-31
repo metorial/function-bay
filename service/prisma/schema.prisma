@@ -17,7 +17,7 @@ generator json {
   provider = "prisma-json-types-generator"
 }
 
-model Instance {
+model Tenant {
   oid BigInt @id
   id  String @unique
 
@@ -69,14 +69,14 @@ model RuntimeForgeWorkflow {
   runtimeOid BigInt
   runtime    Runtime @relation(fields: [runtimeOid], references: [oid])
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   forgeWorkflowId        String
-  forgeInstanceId        String
+  forgeTenantId          String
   forgeWorkflowVersionId String
 
-  @@unique([runtimeOid, instanceOid])
+  @@unique([runtimeOid, tenantOid])
 }
 
 enum FunctionStatus {
@@ -96,8 +96,8 @@ model Function {
   currentVersionOid BigInt?
   currentVersion    FunctionVersion? @relation(fields: [currentVersionOid], references: [oid], name: "CurrentVersion")
 
-  instanceOid BigInt
-  instance    Instance @relation(fields: [instanceOid], references: [oid])
+  tenantOid BigInt
+  tenant    Tenant @relation(fields: [tenantOid], references: [oid])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -108,7 +108,7 @@ model Function {
   runtimeOid          BigInt?
   functionBundles     FunctionBundle[]
 
-  @@unique([identifier, instanceOid])
+  @@unique([identifier, tenantOid])
 }
 
 enum FunctionDeploymentStatus {

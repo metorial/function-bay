@@ -23,7 +23,7 @@ export let functionDeploymentController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
 
         name: v.string(),
@@ -48,7 +48,7 @@ export let functionDeploymentController = app.controller({
     .do(async ctx => {
       let version = await functionDeploymentService.createFunctionDeployment({
         function: ctx.function,
-        instance: ctx.instance,
+        tenant: ctx.tenant,
         input: {
           name: ctx.input.name,
           env: ctx.input.env,
@@ -66,7 +66,7 @@ export let functionDeploymentController = app.controller({
       Paginator.validate(
         v.object({
           functionId: v.string(),
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
@@ -84,7 +84,7 @@ export let functionDeploymentController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
         functionDeploymentId: v.string()
       })
@@ -95,7 +95,7 @@ export let functionDeploymentController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
         functionDeploymentId: v.string()
       })

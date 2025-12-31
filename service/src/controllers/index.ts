@@ -5,13 +5,13 @@ import { functionController } from './function';
 import { functionDeploymentController } from './functionDeployment';
 import { functionInvocationController } from './functionInvocation';
 import { functionVersionController } from './functionVersion';
-import { instanceController } from './instance';
 import { providerController } from './provider';
 import { runtimeController } from './runtime';
+import { tenantController } from './tenant';
 
 export let rootController = app.controller({
   runtime: runtimeController,
-  instance: instanceController,
+  tenant: tenantController,
   provider: providerController,
   function: functionController,
   functionVersion: functionVersionController,

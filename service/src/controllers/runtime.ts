@@ -22,7 +22,7 @@ export let runtimeController = app.controller({
     .input(
       Paginator.validate(
         v.object({
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
