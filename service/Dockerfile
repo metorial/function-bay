@@ -1,4 +1,3 @@
-# Production Dockerfile for Forge Service
 FROM oven/bun:1 AS base
 
 # Install curl for health checks
@@ -29,6 +28,7 @@ RUN bun install --frozen-lockfile
 
 # Copy Prisma schema
 COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 
 # Generate Prisma client
 RUN bun prisma generate
@@ -50,6 +50,7 @@ COPY --from=builder /app/prisma/generated ./prisma/generated
 
 # Copy Prisma schema (needed for db push)
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Copy source code
 COPY --from=builder /app/src ./src
