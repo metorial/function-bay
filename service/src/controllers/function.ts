@@ -4,26 +4,26 @@ import { functionPresenter } from '../presenters/function';
 import { functionService } from '../services';
 import { functionInvocationService } from '../services/functionInvocation';
 import { app } from './_app';
-import { instanceApp } from './instance';
+import { tenantApp } from './tenant';
 
-export let functionApp = instanceApp.use(async ctx => {
+export let functionApp = tenantApp.use(async ctx => {
   let functionId = ctx.body.functionId;
   if (!functionId) throw new Error('Function ID is required');
 
   let func = await functionService.getFunctionById({
     id: functionId,
-    instance: ctx.instance
+    tenant: ctx.tenant
   });
 
   return { function: func };
 });
 
 export let functionController = app.controller({
-  upsert: instanceApp
+  upsert: tenantApp
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
 
         name: v.string(),
         identifier: v.string()
@@ -31,7 +31,7 @@ export let functionController = app.controller({
     )
     .do(async ctx => {
       let func = await functionService.upsertFunction({
-        instance: ctx.instance,
+        tenant: ctx.tenant,
         input: {
           name: ctx.input.name,
           identifier: ctx.input.identifier
@@ -40,18 +40,18 @@ export let functionController = app.controller({
       return functionPresenter(func);
     }),
 
-  list: instanceApp
+  list: tenantApp
     .handler()
     .input(
       Paginator.validate(
         v.object({
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
     .do(async ctx => {
       let paginator = await functionService.listFunctions({
-        instance: ctx.instance
+        tenant: ctx.tenant
       });
 
       let list = await paginator.run(ctx.input);
@@ -63,7 +63,7 @@ export let functionController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string()
       })
     )
@@ -73,7 +73,7 @@ export let functionController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
 
         name: v.optional(v.string())
@@ -94,7 +94,7 @@ export let functionController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
 
         payload: v.record(v.any())
@@ -104,7 +104,7 @@ export let functionController = app.controller({
       async ctx =>
         await functionInvocationService.invokeFunction({
           functionId: ctx.input.functionId,
-          instanceId: ctx.input.instanceId,
+          tenantId: ctx.input.tenantId,
           payload: ctx.input.payload
         })
     )

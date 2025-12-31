@@ -13,13 +13,13 @@ let Sentry = getSentry();
 let include = { functionVersion: true };
 
 let getFunctionData = createLocallyCachedFunction({
-  getHash: (i: { instanceId: string; functionId: string; versionId?: string }) =>
-    `${i.instanceId}:${i.functionId}`,
+  getHash: (i: { tenantId: string; functionId: string; versionId?: string }) =>
+    `${i.tenantId}:${i.functionId}`,
   provider: async i =>
     await db.function.findFirst({
       where: {
         OR: [{ id: i.functionId }, { identifier: i.functionId }],
-        instance: { OR: [{ id: i.instanceId }, { identifier: i.instanceId }] }
+        tenant: { OR: [{ id: i.tenantId }, { identifier: i.tenantId }] }
       },
       include: {
         currentVersion: {
@@ -38,13 +38,13 @@ let getFunctionData = createLocallyCachedFunction({
 
 class functionInvocationServiceImpl {
   async invokeFunction(d: {
-    instanceId: string;
+    tenantId: string;
     functionId: string;
     versionId?: string;
     payload: Record<string, any>;
   }) {
     let func = await getFunctionData({
-      instanceId: d.instanceId,
+      tenantId: d.tenantId,
       functionId: d.functionId
     });
     if (!func) throw new ServiceError(notFoundError('function'));

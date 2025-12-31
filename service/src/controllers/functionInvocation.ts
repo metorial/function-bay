@@ -24,7 +24,7 @@ export let functionInvocationController = app.controller({
       Paginator.validate(
         v.object({
           functionId: v.string(),
-          instanceId: v.string()
+          tenantId: v.string()
         })
       )
     )
@@ -42,7 +42,7 @@ export let functionInvocationController = app.controller({
     .handler()
     .input(
       v.object({
-        instanceId: v.string(),
+        tenantId: v.string(),
         functionId: v.string(),
         functionInvocationId: v.string()
       })

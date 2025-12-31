@@ -140,7 +140,7 @@
         "@lowerdeck/service": "^1.0.3",
         "@lowerdeck/slugify": "^1.0.4",
         "@lowerdeck/validation": "^1.0.4",
-        "@metorial-services/forge-client": "^1.0.1",
+        "@metorial-services/forge-client": "^1.0.3",
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
         "date-fns": "^4.1.0",
@@ -1958,7 +1958,7 @@
 
     "function-bay/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
-    "function-bay-service/@metorial-services/forge-client": ["@metorial-services/forge-client@1.0.1", "", { "dependencies": { "@lowerdeck/rpc-client": "^1.0.2" } }, "sha512-D7B/vHy+AyCyxljsMyLP58hnZcMR0dg8q2dHwS4RcD2pEuh+PC11jVq2mLni2acWNKs3TV6s/Y+x9CXAdqwDTQ=="],
+    "function-bay-service/@metorial-services/forge-client": ["@metorial-services/forge-client@1.0.3", "", { "dependencies": { "@lowerdeck/rpc-client": "^1.0.2" } }, "sha512-r+OzWCJLpcu40tKg9+o+8YW/TK2ANVHM0cW1nk3RDyT95ZyLvB7Lj8xjqX/y4LSIBY7hMOOsoE9qSwrOWophbw=="],
 
     "gzip-size/duplexer": ["duplexer@0.1.2", "", {}, "sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg=="],
 

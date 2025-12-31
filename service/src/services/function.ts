@@ -1,7 +1,7 @@
 import { notFoundError, ServiceError } from '@lowerdeck/error';
 import { Paginator } from '@lowerdeck/pagination';
 import { Service } from '@lowerdeck/service';
-import type { Function, Instance } from '../../prisma/generated/client';
+import type { Function, Tenant } from '../../prisma/generated/client';
 import { db } from '../db';
 import { ID, snowflake } from '../id';
 
@@ -15,13 +15,13 @@ class functionServiceImpl {
       name: string;
       identifier: string;
     };
-    instance: Instance;
+    tenant: Tenant;
   }) {
     return await db.function.upsert({
       where: {
-        identifier_instanceOid: {
+        identifier_tenantOid: {
           identifier: d.input.identifier,
-          instanceOid: d.instance.oid
+          tenantOid: d.tenant.oid
         },
         status: 'active'
       },
@@ -31,18 +31,18 @@ class functionServiceImpl {
         id: await ID.generateId('function'),
         name: d.input.name,
         identifier: d.input.identifier,
-        instanceOid: d.instance.oid,
+        tenantOid: d.tenant.oid,
         status: 'active'
       },
       include
     });
   }
 
-  async getFunctionById(d: { id: string; instance: Instance }) {
+  async getFunctionById(d: { id: string; tenant: Tenant }) {
     let func = await db.function.findFirst({
       where: {
         OR: [{ id: d.id }, { identifier: d.id }],
-        instanceOid: d.instance.oid,
+        tenantOid: d.tenant.oid,
         status: 'active'
       },
       include
@@ -51,14 +51,14 @@ class functionServiceImpl {
     return func;
   }
 
-  async listFunctions(d: { instance: Instance }) {
+  async listFunctions(d: { tenant: Tenant }) {
     return Paginator.create(({ prisma }) =>
       prisma(
         async opts =>
           await db.function.findMany({
             ...opts,
             where: {
-              instanceOid: d.instance.oid,
+              tenantOid: d.tenant.oid,
               status: 'active'
             },
             include

@@ -2,7 +2,7 @@ import { createIdGenerator, idType } from '@lowerdeck/id';
 import { Worker as SnowflakeId } from 'snowflake-uuid';
 
 export let ID = createIdGenerator({
-  instance: idType.sorted('bins_'),
+  tenant: idType.sorted('bins_'),
 
   provider: idType.sorted('bpro_'),
   runtime: idType.sorted('brtm_'),

@@ -33,7 +33,7 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
       runtime: true,
       function: {
         include: {
-          instance: true
+          tenant: true
         }
       }
     }
@@ -41,7 +41,7 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
   if (!deployment) throw new QueueRetryError();
 
   let workflow = await ensureForgeWorkflow({
-    instance: deployment.function.instance,
+    tenant: deployment.function.tenant,
     runtime: deployment.runtime,
     steps: defaultProvider.workflow
   });
@@ -54,7 +54,7 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
   );
 
   let run = await forge.workflowRun.create({
-    instanceId: deployment.function.instance.identifier,
+    tenantId: deployment.function.tenant.identifier,
     workflowId: workflow.id,
     files: data.files,
 
@@ -78,7 +78,7 @@ let startBuildQueueProcessor = startBuildQueue.process(async data => {
     deploymentId: deployment.id,
     runId: run.id,
     workflowId: workflow.id,
-    instanceId: deployment.function.instance.identifier
+    tenantId: deployment.function.tenant.identifier
   });
 });
 
@@ -87,7 +87,7 @@ let monitorBuildQueue = createQueue<{
   deploymentId: string;
   runId: string;
   workflowId: string;
-  instanceId: string;
+  tenantId: string;
 }>({
   name: 'fbay/build/mon',
   redisUrl: env.service.REDIS_URL
@@ -95,7 +95,7 @@ let monitorBuildQueue = createQueue<{
 
 let monitorBuildQueueProcessor = monitorBuildQueue.process(async data => {
   let run = await forge.workflowRun.get({
-    instanceId: data.instanceId,
+    tenantId: data.tenantId,
     workflowId: data.workflowId,
     workflowRunId: data.runId
   });
@@ -119,7 +119,7 @@ let workflowFinishedBuildQueue = createQueue<{
   deploymentId: string;
   runId: string;
   workflowId: string;
-  instanceId: string;
+  tenantId: string;
 }>({
   name: 'fbay/build/wfin',
   redisUrl: env.service.REDIS_URL
@@ -127,7 +127,7 @@ let workflowFinishedBuildQueue = createQueue<{
 
 let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(async data => {
   let run = await forge.workflowRun.get({
-    instanceId: data.instanceId,
+    tenantId: data.tenantId,
     workflowId: data.workflowId,
     workflowRunId: data.runId
   });
