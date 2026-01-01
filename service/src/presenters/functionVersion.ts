@@ -17,7 +17,7 @@ export let functionVersionPresenter = (
     };
   }
 ) => ({
-  object: 'function.version',
+  object: 'function_bay#function.version',
 
   id: version.id,
   identifier: version.identifier,

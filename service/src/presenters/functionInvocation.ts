@@ -3,7 +3,7 @@ import type { FunctionInvocation, FunctionVersion } from '../../prisma/generated
 export let functionInvocationPresenter = (
   invocation: FunctionInvocation & { functionVersion: FunctionVersion }
 ) => ({
-  object: 'function.invocation',
+  object: 'function_bay#function.invocation',
 
   id: invocation.id,
   status: invocation.status,

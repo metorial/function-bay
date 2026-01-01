@@ -1,7 +1,7 @@
 import type { Tenant } from '../../prisma/generated/client';
 
 export let tenantPresenter = (tenant: Tenant) => ({
-  object: 'tenant',
+  object: 'function_bay#tenant',
 
   id: tenant.id,
   identifier: tenant.identifier,

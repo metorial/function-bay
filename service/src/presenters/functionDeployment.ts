@@ -24,7 +24,7 @@ export let functionDeploymentPresenter = (
     steps: FunctionDeploymentStep[];
   }
 ) => ({
-  object: 'function.deployment',
+  object: 'function_bay#function.deployment',
 
   id: deployment.id,
   status: deployment.status,
@@ -64,7 +64,7 @@ export let functionDeploymentStepPresenter = (step: {
   startedAt: Date | null;
   endedAt: Date | null;
 }) => ({
-  object: 'function.deployment.step',
+  object: 'function_bay#function.deployment.step',
 
   id: step.id,
   status: step.status,
