@@ -135,7 +135,7 @@ export let invokeFunction = async (d: {
     if (statusCode == 200 && result.result) {
       return {
         type: 'success' as const,
-        result,
+        result: result.result,
         ...outputs
       };
     }
