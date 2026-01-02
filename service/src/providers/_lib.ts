@@ -44,10 +44,7 @@ export interface FunctionInvocationParams {
 export type FunctionInvocationResult = (
   | {
       type: 'success';
-      result: {
-        error?: Record<string, any>;
-        result?: any;
-      };
+      result: any;
     }
   | {
       type: 'error';
