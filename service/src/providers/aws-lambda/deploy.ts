@@ -1,5 +1,10 @@
-import { Runtime as AwsRuntime, CreateFunctionCommand } from '@aws-sdk/client-lambda';
+import {
+  Runtime as AwsRuntime,
+  CreateFunctionCommand,
+  GetFunctionCommand
+} from '@aws-sdk/client-lambda';
 import type { FunctionBayRuntimeConfig } from '@function-bay/types';
+import { delay } from '@lowerdeck/delay';
 import type { Function, FunctionDeployment, Runtime } from '../../../prisma/generated/client';
 import { lambdaClient } from './lambda';
 import { ensureLambdaExecutionRole } from './role';
@@ -77,6 +82,32 @@ export let deployFunction = async (d: {
       }
     })
   );
+
+  if (!res.FunctionArn || !res.FunctionName) {
+    throw new Error('Failed to deploy function');
+  }
+
+  await delay(2500);
+
+  let func = await lambdaClient.send(
+    new GetFunctionCommand({
+      FunctionName: res.FunctionName
+    })
+  );
+
+  while (func.Configuration?.State == 'Pending') {
+    await delay(1000);
+
+    func = await lambdaClient.send(
+      new GetFunctionCommand({
+        FunctionName: res.FunctionName
+      })
+    );
+  }
+
+  if (func.Configuration?.State == 'Failed') {
+    throw new Error('Function deployment failed: ' + func.Configuration.StateReason);
+  }
 
   return {
     providerData: {
