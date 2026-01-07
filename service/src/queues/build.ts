@@ -139,7 +139,7 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
     if (!manifestArtifact || !outputArtifact) {
       await errorQueue.add({
         deploymentId: data.deploymentId,
-        code: 'build_runtime_error',
+        code: 'function_bay.build_runtime_error',
         message: 'The build runtime did not produce the expected artifacts.'
       });
       return;
@@ -156,7 +156,7 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
     if (!valRes.success) {
       await errorQueue.add({
         deploymentId: data.deploymentId,
-        code: 'build_invalid_manifest',
+        code: 'function_bay.build_invalid_manifest',
         message: `The build runtime produced an invalid manifest: ${JSON.stringify(
           valRes.errors
         )}`
@@ -177,7 +177,7 @@ let workflowFinishedBuildQueueProcessor = workflowFinishedBuildQueue.process(asy
   } else {
     await errorQueue.add({
       deploymentId: data.deploymentId,
-      code: 'build_failed',
+      code: 'function_bay.build_failed',
       message: 'The build workflow run failed.'
     });
   }
@@ -253,7 +253,7 @@ let deployToRuntimeQueueProcessor = deployToRuntimeQueue.process(async data => {
 
     await errorQueue.add({
       deploymentId: deployment.id,
-      code: 'deploy_runtime_error',
+      code: 'function_bay.deploy_runtime_error',
       message: `Error deploying function to runtime: ${err.message}`
     });
   }
