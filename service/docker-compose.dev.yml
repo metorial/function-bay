@@ -6,11 +6,11 @@ services:
     container_name: function-bay-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: function-bay
-      POSTGRES_PASSWORD: function-bay
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: function-bay
     volumes:
-      - postgres_data2:/var/lib/postgresql/data
+      - postgres_data3:/var/lib/postgresql/data
     networks:
       - function-bay-network
 
@@ -23,8 +23,6 @@ services:
 
   object-storage:
     image: ghcr.io/metorial/object-storage:latest
-    ports:
-      - "52010:52010"
     volumes:
       - object-store-data:/app/data
     environment:
@@ -48,10 +46,8 @@ services:
     image: ghcr.io/metorial/forge:latest
     container_name: function-bay-forge
     restart: unless-stopped
-    ports:
-      - "52020:52020"
     environment:
-      DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/forge
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
       
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
@@ -82,7 +78,7 @@ services:
     ports:
       - "52030:52030"
     environment:
-      DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/function-bay
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
       
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
@@ -111,7 +107,7 @@ services:
       - function-bay-network
 
 volumes:
-  postgres_data2:
+  postgres_data3:
     driver: local
   object-store-data:
     driver: local
