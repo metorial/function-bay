@@ -11,8 +11,7 @@ RUN bun install
 # Copy source code
 COPY . .
 
-# Expose port
-EXPOSE 51001
+RUN  bun prisma generate
 
 # Run in dev mode with hot reloading
 CMD ["sh", "-c", "bun prisma db push && bun --watch src/server.ts"]
