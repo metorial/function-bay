@@ -80,14 +80,26 @@ export let invokeFunction = async (d: {
     };
   }
 
+  let hasBootError = false;
+
   try {
     let logs = res.LogResult ? atob(res.LogResult) : '';
 
     let lines = logs.split('\n');
+
     let startLine = 0;
-    while (startLine < lines.length && !lines[startLine]?.includes('START RequestId')) {
+    while (startLine < lines.length) {
+      if (lines[startLine]?.includes('START RequestId')) break;
+      if (lines[startLine]?.includes('END RequestId')) break;
+      if (lines[startLine]?.includes('ERROR')) {
+        hasBootError = true;
+        startLine--;
+        break;
+      }
+
       startLine++;
     }
+
     let endLine = lines.length - 1;
     while (endLine >= 0 && !lines[endLine]?.includes('END RequestId')) {
       endLine--;
@@ -147,6 +159,33 @@ export let invokeFunction = async (d: {
           ...result.error,
           code: result.error.code || 'function_bay.function_error',
           message: result.error.message || 'Function invocation resulted in an error'
+        },
+        ...outputs
+      };
+    }
+
+    let errorBody = body as any;
+    if (errorBody?.errorType == 'Error' && typeof errorBody?.errorMessage == 'string') {
+      let traceArr = errorBody?.trace && Array.isArray(errorBody.trace) ? errorBody.trace : [];
+      let trace = traceArr.join('\n');
+
+      return {
+        type: 'error' as const,
+        error: {
+          code: 'function_bay.function_error',
+          message: `Function invocation resulted in an error:\nError ${errorBody.errorMessage}\n\n${trace}`
+        },
+        ...outputs
+      };
+    }
+
+    if (hasBootError) {
+      return {
+        type: 'error' as const,
+        error: {
+          code: 'function_bay.function_error',
+          message:
+            'Function threw an error during initialization. This is often due to the global/root scope throwing an error, or the code being malformed.'
         },
         ...outputs
       };
