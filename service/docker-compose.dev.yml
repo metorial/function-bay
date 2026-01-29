@@ -87,7 +87,7 @@ services:
       CODE_BUILD_PROJECT_NAME: ${CODE_BUILD_PROJECT_NAME:-}
       CODE_BUILD_ROLE_ARN: ${CODE_BUILD_ROLE_ARN:-}
     ports:
-      - '52020:52020'
+      - '52021:52020'
     depends_on:
       postgres:
         condition: service_healthy
