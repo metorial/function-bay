@@ -113,20 +113,20 @@ services:
     ports:
       - '52030:52030'
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/function-bay
-      REDIS_URL: redis://redis:6379/0
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
 
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       DEFAULT_PROVIDER: ${DEFAULT_PROVIDER:-aws.lambda}
 
-      OBJECT_STORAGE_URL: http://object-storage:52010
-      BUNDLE_BUCKET_NAME: bundles
+      OBJECT_STORAGE_URL: ${OBJECT_STORAGE_URL}
+      BUNDLE_BUCKET_NAME: ${BUNDLE_BUCKET_NAME}
 
-      FORGE_API_URL: http://forge:52020/metorial-forge
+      FORGE_API_URL: ${FORGE_API_URL}
 
-      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-}
-      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-}
-      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-}
+      LAMBDA_AWS_REGION: ${LAMBDA_AWS_REGION:-us-east-1}
+      LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-test}
+      LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-test}
       LAMBDA_ROLE_ARN: ${LAMBDA_ROLE_ARN:-}
     volumes:
       - ./src:/app/src:ro
