@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
-import _ from 'lodash';
+import { times } from 'lodash';
 import { FunctionVersionStatus } from '../../../prisma/generated/client';
 
 describe('functionVersion:list E2E', () => {
@@ -18,11 +18,11 @@ describe('functionVersion:list E2E', () => {
     const runtime = baseVersion.runtime;
 
     const bundles = await Promise.all(
-      _.times(4, () => f.functionBundle.available({ functionOid: func.oid }))
+      times(4, () => f.functionBundle.available({ functionOid: func.oid }))
     );
 
     const versions = await Promise.all(
-      _.times(bundles.length, index =>
+      times(bundles.length, index =>
         f.functionVersion.default({
           functionOid: func.oid,
           runtimeOid: runtime.oid,

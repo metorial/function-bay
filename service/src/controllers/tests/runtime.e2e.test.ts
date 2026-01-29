@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
-import _ from 'lodash';
+import { times } from 'lodash';
 
 describe('runtime:get E2E', () => {
   const f = fixtures(testDb);
@@ -40,7 +40,7 @@ describe('runtime:list E2E', () => {
     const provider = await f.provider.awsLambda();
 
     const runtimes = await Promise.all(
-      _.times(5, index =>
+      times(5, index =>
         f.runtime.default({
           providerOid: provider.oid,
           overrides: { identifier: `rt-${index + 1}` }

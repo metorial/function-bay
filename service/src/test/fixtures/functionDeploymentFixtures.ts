@@ -19,7 +19,7 @@ import {
   withoutEncryptedEnvOverrides
 } from './helpers';
 
-const testEncryption = new Encryption(process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes!!');
+const testEncryption = new Encryption(process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes-key');
 
 export const FunctionDeploymentFixtures = (db: PrismaClient) => {
   const functionFixtures = FunctionFixtures(db);

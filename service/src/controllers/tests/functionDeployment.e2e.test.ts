@@ -22,7 +22,7 @@ describe('functionDeployment:create E2E', () => {
 
   beforeEach(async () => {
     await cleanDatabase();
-    buildQueueMocks.add.mockClear();
+    buildQueueMocks.add.mockReset();
   });
 
   it('creates a new deployment', async () => {

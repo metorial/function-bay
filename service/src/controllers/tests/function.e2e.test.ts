@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
-import _ from 'lodash';
+import { times } from 'lodash';
 
 const providerMocks = vi.hoisted(() => ({
   invokeFunction: vi.fn()
@@ -73,7 +73,7 @@ describe('function:list E2E', () => {
     const otherTenant = await f.tenant.withIdentifier('other-tenant');
 
     const functions = await Promise.all(
-      _.times(3, index =>
+      times(3, index =>
         f.function.default({
           tenantOid: tenant.oid,
           overrides: { identifier: `fn-${index + 1}` }
@@ -92,7 +92,7 @@ describe('function:list E2E', () => {
       limit: 10
     });
 
-    expect(result.items.length).toBeGreaterThanOrEqual(3);
+    expect(result.items).toHaveLength(3);
     result.items.forEach(item => {
       expect(functionIds).toContain(item.id);
     });
@@ -187,5 +187,18 @@ describe('function:invoke E2E', () => {
       id: expect.any(String)
     });
     expect(providerMocks.invokeFunction).toHaveBeenCalledOnce();
+  });
+
+  it('returns error when function has no deployed versions', async () => {
+    const func = await f.function.withTenant();
+
+    await expect(
+      functionBayClient.function.invoke({
+        tenantId: func.tenant.id,
+        functionId: func.id,
+        payload: { input: 'test' }
+      })
+    ).rejects.toThrow('Function has no versions deployed');
+    expect(providerMocks.invokeFunction).not.toHaveBeenCalled();
   });
 });
