@@ -14,6 +14,10 @@ import { defineFactory } from '@lowerdeck/testing-tools';
 import { FunctionFixtures } from './functionFixtures';
 import { FunctionBundleFixtures } from './functionBundleFixtures';
 import { Encryption } from '@lowerdeck/encryption';
+import {
+  resolveEncryptedEnvironmentVariables,
+  withoutEncryptedEnvOverrides
+} from './helpers';
 
 const testEncryption = new Encryption(process.env.ENCRYPTION_KEY || 'test-encryption-key-32-bytes!!');
 
@@ -31,13 +35,11 @@ export const FunctionVersionFixtures = (db: PrismaClient) => {
     const identifier =
       data.overrides?.identifier ?? `v${randomBytes(2).toString('hex')}`;
 
-    // Await encryption before creating factory
-    const encryptedEnv = typeof data.overrides?.encryptedEnvironmentVariables === 'string'
-      ? data.overrides.encryptedEnvironmentVariables
-      : await testEncryption.encrypt({
-          secret: JSON.stringify({}),
-          entityId: id
-        });
+    const encryptedEnv = await resolveEncryptedEnvironmentVariables({
+      overrides: data.overrides,
+      encryption: testEncryption,
+      entityId: id
+    });
 
     const factory = defineFactory<FunctionVersion>(
       {
@@ -68,9 +70,7 @@ export const FunctionVersionFixtures = (db: PrismaClient) => {
       }
     );
 
-    // Don't pass encryptedEnvironmentVariables in overrides to avoid overwriting
-    const { encryptedEnvironmentVariables: _, ...safeOverrides } = data.overrides ?? {};
-    return factory.create(safeOverrides);
+    return factory.create(withoutEncryptedEnvOverrides(data.overrides));
   };
 
   const complete = async (data?: {
