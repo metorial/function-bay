@@ -81,7 +81,7 @@ jobs:
 
       - name: Run E2E tests
         run: |
-          docker exec function-bay-service sh -c "cd /app && bun run test -- --mode ci"
+          docker exec function-bay-service sh -c "cd /app/service && bun run test -- --mode ci --reporter verbose"
 
       - name: Collect logs on failure
         if: failure()

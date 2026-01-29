@@ -106,8 +106,8 @@ services:
   function-bay:
     profiles: ['service']
     build:
-      context: .
-      dockerfile: dev.Dockerfile
+      context: ..
+      dockerfile: ./service/dev.Dockerfile
     container_name: function-bay-service
     restart: unless-stopped
     ports:
@@ -128,10 +128,6 @@ services:
       LAMBDA_AWS_ACCESS_KEY_ID: ${LAMBDA_AWS_ACCESS_KEY_ID:-test}
       LAMBDA_AWS_SECRET_ACCESS_KEY: ${LAMBDA_AWS_SECRET_ACCESS_KEY:-test}
       LAMBDA_ROLE_ARN: ${LAMBDA_ROLE_ARN:-}
-    volumes:
-      - ./src:/app/src:ro
-      - ./package.json:/app/package.json:ro
-      - ./tsconfig.json:/app/tsconfig.json:ro
     depends_on:
       postgres:
         condition: service_healthy
