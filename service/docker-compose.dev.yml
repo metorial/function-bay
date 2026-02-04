@@ -27,7 +27,7 @@ services:
     container_name: function-bay-redis
     restart: unless-stopped
     ports:
-      - '6379:6379'
+      - '46379:6379'
     networks:
       - function-bay-network
     healthcheck:
@@ -56,7 +56,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${OBJECT_STORAGE_AWS_SECRET_ACCESS_KEY:-test}
       AWS_REGION: ${OBJECT_STORAGE_AWS_REGION:-us-east-1}
     ports:
-      - '52010:52010'
+      - '45010:52010'
     networks:
       - function-bay-network
     healthcheck:
@@ -87,7 +87,7 @@ services:
       CODE_BUILD_PROJECT_NAME: ${CODE_BUILD_PROJECT_NAME:-}
       CODE_BUILD_ROLE_ARN: ${CODE_BUILD_ROLE_ARN:-}
     ports:
-      - '52021:52020'
+      - '45021:52020'
     depends_on:
       postgres:
         condition: service_healthy
@@ -111,7 +111,7 @@ services:
     container_name: function-bay-service
     restart: unless-stopped
     ports:
-      - '52030:52030'
+      - '45030:52030'
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: ${REDIS_URL}
