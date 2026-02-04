@@ -42,7 +42,7 @@ services:
   object-storage:
     image: ghcr.io/metorial/object-storage:latest
     ports:
-      - "52010:52010"
+      - "45010:52010"
     volumes:
       - object-store-data:/app/data
     environment:
@@ -56,7 +56,7 @@ services:
   forge:
     image: ghcr.io/metorial/forge:latest
     ports:
-      - "52020:52020"
+      - "45021:52020"
     environment:
       DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/forge
       REDIS_URL: redis://redis:6379/0
@@ -80,7 +80,7 @@ services:
   function-bay:
     image: ghcr.io/metorial/function-bay:latest
     ports:
-      - "52030:52030"
+      - "45030:52030"
     environment:
       DATABASE_URL: postgresql://function-bay:function-bay@postgres:5432/function-bay
       REDIS_URL: redis://redis:6379/0
@@ -139,7 +139,7 @@ Start the services:
 docker-compose up -d
 ```
 
-The Function Bay service will be available at `http://localhost:52030`
+The Function Bay service will be available at `http://localhost:45030`
 
 ## TypeScript Client
 
@@ -157,7 +157,7 @@ bun add @metorial-services/function-bay-client
 import { createFunctionBayClient } from '@metorial-services/function-bay-client';
 
 let client = createFunctionBayClient({
-  endpoint: 'http://localhost:52030',
+  endpoint: 'http://localhost:45030',
 });
 ```
 
