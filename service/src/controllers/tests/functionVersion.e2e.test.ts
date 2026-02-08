@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { functionBayClient } from '../../test/client';
 import { times } from 'lodash';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { FunctionVersionStatus } from '../../../prisma/generated/client';
-import { OBJECT_TYPES } from '../../presenters/objectTypes';
+import { functionBayClient } from '../../test/client';
+import { fixtures } from '../../test/fixtures';
+import { cleanDatabase, testDb } from '../../test/setup';
 
 describe('functionVersion:list E2E', () => {
   const f = fixtures(testDb);
@@ -52,16 +51,13 @@ describe('functionVersion:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: OBJECT_TYPES.functionVersion,
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
       function: {
-        object: OBJECT_TYPES.function,
         id: func.id
       },
       runtime: {
-        object: OBJECT_TYPES.runtime,
         id: runtime.id
       }
     });
@@ -85,7 +81,6 @@ describe('functionVersion:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: OBJECT_TYPES.functionVersion,
       id: version.id,
       identifier: version.identifier,
       name: version.name

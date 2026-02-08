@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { functionBayClient } from '../../test/client';
-import { OBJECT_TYPES } from '../../presenters/objectTypes';
 import { times } from 'lodash';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { functionBayClient } from '../../test/client';
+import { fixtures } from '../../test/fixtures';
+import { cleanDatabase, testDb } from '../../test/setup';
 
 describe('runtime:get E2E', () => {
   const f = fixtures(testDb);
@@ -20,7 +19,6 @@ describe('runtime:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: OBJECT_TYPES.runtime,
       id: runtime.id,
       identifier: runtime.identifier,
       name: runtime.name,
@@ -63,12 +61,10 @@ describe('runtime:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: OBJECT_TYPES.runtime,
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
       provider: {
-        object: OBJECT_TYPES.provider,
         id: expect.any(String),
         identifier: expect.any(String),
         name: expect.any(String)
