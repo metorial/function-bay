@@ -6,6 +6,7 @@ import {
   FunctionDeploymentStatus,
   FunctionDeploymentStepStatus
 } from '../../../prisma/generated/client';
+import { OBJECT_TYPES } from '../../presenters/objectTypes';
 
 const buildQueueMocks = vi.hoisted(() => ({
   add: vi.fn().mockResolvedValue({ id: 'test-job-id' })
@@ -48,7 +49,7 @@ describe('functionDeployment:create E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.deployment',
+      object: OBJECT_TYPES.functionDeployment,
       id: expect.any(String),
       name: 'Production Deploy',
       status: FunctionDeploymentStatus.pending,
@@ -124,16 +125,16 @@ describe('functionDeployment:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function.deployment',
+      object: OBJECT_TYPES.functionDeployment,
       id: expect.any(String),
       name: expect.any(String),
       status: expect.any(String),
       function: {
-        object: 'function_bay#function',
+        object: OBJECT_TYPES.function,
         id: func.id
       },
       runtime: {
-        object: 'function_bay#runtime',
+        object: OBJECT_TYPES.runtime,
         id: func.runtime!.id
       }
     });
@@ -161,7 +162,7 @@ describe('functionDeployment:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.deployment',
+      object: OBJECT_TYPES.functionDeployment,
       id: deployment.id,
       name: deployment.name,
       status: FunctionDeploymentStatus.succeeded
@@ -214,7 +215,7 @@ describe('functionDeployment:getOutput E2E', () => {
     expect(result).toBeInstanceOf(Array);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result[0]).toMatchObject({
-      object: 'function_bay#function.deployment.step',
+      object: OBJECT_TYPES.functionDeploymentStep,
       status: FunctionDeploymentStepStatus.succeeded,
       logs: expect.arrayContaining([
         expect.objectContaining({

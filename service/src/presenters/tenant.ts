@@ -1,7 +1,8 @@
 import type { Tenant } from '../../prisma/generated/client';
+import { OBJECT_TYPES } from './objectTypes';
 
 export let tenantPresenter = (tenant: Tenant) => ({
-  object: 'function_bay#tenant',
+  object: OBJECT_TYPES.tenant,
 
   id: tenant.id,
   identifier: tenant.identifier,

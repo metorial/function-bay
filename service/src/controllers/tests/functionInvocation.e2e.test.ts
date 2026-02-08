@@ -3,6 +3,7 @@ import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
 import { FunctionInvocationStatus } from '../../../prisma/generated/client';
+import { OBJECT_TYPES } from '../../presenters/objectTypes';
 
 describe('functionInvocation:list E2E', () => {
   const f = fixtures(testDb);
@@ -41,7 +42,7 @@ describe('functionInvocation:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function.invocation',
+      object: OBJECT_TYPES.functionInvocation,
       id: expect.any(String),
       functionVersionId: version.id
     });
@@ -72,7 +73,7 @@ describe('functionInvocation:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.invocation',
+      object: OBJECT_TYPES.functionInvocation,
       id: invocation.id,
       status: FunctionInvocationStatus.succeeded,
       logs: expect.arrayContaining([

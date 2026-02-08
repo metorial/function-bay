@@ -4,6 +4,7 @@ import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
 import { times } from 'lodash';
 import { FunctionVersionStatus } from '../../../prisma/generated/client';
+import { OBJECT_TYPES } from '../../presenters/objectTypes';
 
 describe('functionVersion:list E2E', () => {
   const f = fixtures(testDb);
@@ -51,16 +52,16 @@ describe('functionVersion:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function.version',
+      object: OBJECT_TYPES.functionVersion,
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
       function: {
-        object: 'function_bay#function',
+        object: OBJECT_TYPES.function,
         id: func.id
       },
       runtime: {
-        object: 'function_bay#runtime',
+        object: OBJECT_TYPES.runtime,
         id: runtime.id
       }
     });
@@ -84,7 +85,7 @@ describe('functionVersion:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.version',
+      object: OBJECT_TYPES.functionVersion,
       id: version.id,
       identifier: version.identifier,
       name: version.name

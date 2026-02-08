@@ -4,6 +4,7 @@ import type {
   Provider,
   Runtime
 } from '../../prisma/generated/client';
+import { OBJECT_TYPES } from './objectTypes';
 import { functionPresenter } from './function';
 import { runtimePresenter } from './runtime';
 
@@ -17,7 +18,7 @@ export let functionVersionPresenter = (
     };
   }
 ) => ({
-  object: 'function_bay#function.version',
+  object: OBJECT_TYPES.functionVersion,
 
   id: version.id,
   identifier: version.identifier,

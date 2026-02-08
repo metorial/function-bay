@@ -1,8 +1,9 @@
 import type { Provider, Runtime } from '../../prisma/generated/client';
+import { OBJECT_TYPES } from './objectTypes';
 import { providerPresenter } from './provider';
 
 export let runtimePresenter = (runtime: Runtime & { provider: Provider }) => ({
-  object: 'function_bay#runtime',
+  object: OBJECT_TYPES.runtime,
 
   id: runtime.id,
   identifier: runtime.identifier,

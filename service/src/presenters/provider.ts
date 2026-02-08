@@ -1,7 +1,8 @@
 import type { Provider } from '../../prisma/generated/client';
+import { OBJECT_TYPES } from './objectTypes';
 
 export let providerPresenter = (provider: Provider) => ({
-  object: 'function_bay#provider',
+  object: OBJECT_TYPES.provider,
 
   id: provider.id,
   identifier: provider.identifier,

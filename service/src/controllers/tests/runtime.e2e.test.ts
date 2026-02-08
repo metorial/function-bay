@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
+import { OBJECT_TYPES } from '../../presenters/objectTypes';
 import { times } from 'lodash';
 
 describe('runtime:get E2E', () => {
@@ -19,7 +20,7 @@ describe('runtime:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#runtime',
+      object: OBJECT_TYPES.runtime,
       id: runtime.id,
       identifier: runtime.identifier,
       name: runtime.name,
@@ -62,12 +63,12 @@ describe('runtime:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#runtime',
+      object: OBJECT_TYPES.runtime,
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
       provider: {
-        object: 'function_bay#provider',
+        object: OBJECT_TYPES.provider,
         id: expect.any(String),
         identifier: expect.any(String),
         name: expect.any(String)

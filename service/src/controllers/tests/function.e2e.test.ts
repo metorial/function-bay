@@ -3,6 +3,7 @@ import { testDb, cleanDatabase } from '../../test/setup';
 import { fixtures } from '../../test/fixtures';
 import { functionBayClient } from '../../test/client';
 import { times } from 'lodash';
+import { OBJECT_TYPES } from '../../presenters/objectTypes';
 
 const providerMocks = vi.hoisted(() => ({
   invokeFunction: vi.fn()
@@ -31,7 +32,7 @@ describe('function:upsert E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function',
+      object: OBJECT_TYPES.function,
       id: expect.any(String),
       identifier: 'my-function',
       name: 'My Function',
@@ -99,7 +100,7 @@ describe('function:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function',
+      object: OBJECT_TYPES.function,
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
@@ -125,7 +126,7 @@ describe('function:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function',
+      object: OBJECT_TYPES.function,
       id: func.id,
       identifier: func.identifier,
       name: func.name
