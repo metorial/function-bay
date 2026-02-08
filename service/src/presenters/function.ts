@@ -1,10 +1,9 @@
 import type { Function, FunctionVersion } from '../../prisma/generated/client';
-import { OBJECT_TYPES } from './objectTypes';
 
 export let functionPresenter = (
   func: Function & { currentVersion: FunctionVersion | null }
 ) => ({
-  object: OBJECT_TYPES.function,
+  object: 'function_bay#function',
 
   currentVersionId: func.currentVersion?.id ?? null,
 

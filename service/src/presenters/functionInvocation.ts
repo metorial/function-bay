@@ -1,10 +1,9 @@
 import type { FunctionInvocation, FunctionVersion } from '../../prisma/generated/client';
-import { OBJECT_TYPES } from './objectTypes';
 
 export let functionInvocationPresenter = (
   invocation: FunctionInvocation & { functionVersion: FunctionVersion }
 ) => ({
-  object: OBJECT_TYPES.functionInvocation,
+  object: 'function_bay#function.invocation',
 
   id: invocation.id,
   status: invocation.status,

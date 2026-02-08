@@ -8,7 +8,6 @@ import type {
   Provider,
   Runtime
 } from '../../prisma/generated/client';
-import { OBJECT_TYPES } from './objectTypes';
 import { functionPresenter } from './function';
 import { functionVersionPresenter } from './functionVersion';
 import { runtimePresenter } from './runtime';
@@ -25,7 +24,7 @@ export let functionDeploymentPresenter = (
     steps: FunctionDeploymentStep[];
   }
 ) => ({
-  object: OBJECT_TYPES.functionDeployment,
+  object: 'function_bay#function.deployment',
 
   id: deployment.id,
   status: deployment.status,
@@ -65,7 +64,7 @@ export let functionDeploymentStepPresenter = (step: {
   startedAt: Date | null;
   endedAt: Date | null;
 }) => ({
-  object: OBJECT_TYPES.functionDeploymentStep,
+  object: 'function_bay#function.deployment.step',
 
   id: step.id,
   status: step.status,
