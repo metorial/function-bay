@@ -1,10 +1,4 @@
-import { functionBayApi } from './controllers';
-
-console.log('Server is running');
-
-Bun.serve({
-  fetch: functionBayApi,
-  port: 52030
-});
-
+await import('./init');
+await import('./instrument');
+await import('./endpoints');
 await import('./worker');

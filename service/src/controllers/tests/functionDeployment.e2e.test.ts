@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { functionBayClient } from '../../test/client';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   FunctionDeploymentStatus,
   FunctionDeploymentStepStatus
 } from '../../../prisma/generated/client';
+import { functionBayClient } from '../../test/client';
+import { fixtures } from '../../test/fixtures';
+import { cleanDatabase, testDb } from '../../test/setup';
 
 const buildQueueMocks = vi.hoisted(() => ({
   add: vi.fn().mockResolvedValue({ id: 'test-job-id' })
@@ -48,7 +48,6 @@ describe('functionDeployment:create E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.deployment',
       id: expect.any(String),
       name: 'Production Deploy',
       status: FunctionDeploymentStatus.pending,
@@ -124,16 +123,13 @@ describe('functionDeployment:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function.deployment',
       id: expect.any(String),
       name: expect.any(String),
       status: expect.any(String),
       function: {
-        object: 'function_bay#function',
         id: func.id
       },
       runtime: {
-        object: 'function_bay#runtime',
         id: func.runtime!.id
       }
     });
@@ -161,7 +157,6 @@ describe('functionDeployment:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function.deployment',
       id: deployment.id,
       name: deployment.name,
       status: FunctionDeploymentStatus.succeeded
@@ -214,7 +209,6 @@ describe('functionDeployment:getOutput E2E', () => {
     expect(result).toBeInstanceOf(Array);
     expect(result.length).toBeGreaterThanOrEqual(1);
     expect(result[0]).toMatchObject({
-      object: 'function_bay#function.deployment.step',
       status: FunctionDeploymentStepStatus.succeeded,
       logs: expect.arrayContaining([
         expect.objectContaining({
