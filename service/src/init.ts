@@ -16,3 +16,8 @@ if (!process.env.REDIS_URL) {
     console.warn('Invalid REDIS_URL; leaving as-is.');
   }
 }
+
+// Backwards compat: some setups still use LAMBDA_ROLE_ARN.
+if (!process.env.LAMBDA_EXECUTION_ROLE_ARN && process.env.LAMBDA_ROLE_ARN) {
+  process.env.LAMBDA_EXECUTION_ROLE_ARN = process.env.LAMBDA_ROLE_ARN;
+}
