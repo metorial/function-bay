@@ -46,7 +46,7 @@ export type ForgeWorkflowStep =
       console.log('Unable to create forge test tenant', err);
     }
 
-    delay(5000);
+    await delay(5000);
   }
 })();
 
