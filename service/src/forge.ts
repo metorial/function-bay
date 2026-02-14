@@ -1,4 +1,5 @@
 import { canonicalize } from '@lowerdeck/canonicalize';
+import { delay } from '@lowerdeck/delay';
 import { Hash } from '@lowerdeck/hash';
 import { createForgeClient } from '@metorial-services/forge-client';
 import type { Runtime, Tenant } from '../prisma/generated/client';
@@ -30,6 +31,24 @@ export type ForgeWorkflowStep =
       artifactSourcePath: string;
       artifactName: string;
     };
+
+(async () => {
+  while (true) {
+    console.log('Running forge connection test');
+    try {
+      let testTenant = await forge.tenant.upsert({
+        identifier: 'function-bay-test',
+        name: 'FUNCTION BAY test'
+      });
+      console.log('Was able to create test tenant with forge', testTenant.id);
+      return;
+    } catch (err) {
+      console.log('Unable to create forge test tenant', err);
+    }
+
+    delay(5000);
+  }
+})();
 
 export let ensureForgeTenant = async (tenant: Tenant) =>
   await forge.tenant.upsert({
