@@ -1,10 +1,13 @@
 {
   "name": "function-bay-service",
   "module": "index.ts",
-  "type": "module",
+  "type": "commonjs",
   "private": true,
   "scripts": {
-    "start": "bun ./src/server.ts",
+    "start": "bun run server:start",
+    "server:build": "ncc build ./src/server.ts -o ./dist --source-map --transpile-only && bun run sentry:sourcemaps",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org metorial --project mte-function-bay ./dist && sentry-cli sourcemaps upload --org metorial --project mte-function-bay ./dist",
+    "server:start": "bun ./dist/index.js",
     "dev": "bun --watch ./src/server.ts",
     "infra:up": "docker compose -p function-bay -f ./docker-compose.dev.yml --profile infra up -d --pull always",
     "infra:down": "docker compose -p function-bay -f ./docker-compose.dev.yml --profile infra down",
@@ -21,6 +24,7 @@
     "@lowerdeck/testing-tools": "^1.0.1",
     "@types/bun": "latest",
     "@types/lodash": "^4.17.23",
+    "@vercel/ncc": "^0.38.1",
     "vitest": "4.0.17"
   },
   "peerDependencies": {
@@ -54,6 +58,7 @@
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "@sentry/bun": "^10.38.0",
+    "@sentry/cli": "^3.2.0",
     "date-fns": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash": "4.17.21",
