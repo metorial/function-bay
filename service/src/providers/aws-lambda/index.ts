@@ -1,4 +1,5 @@
 import { ProviderImpl } from '../_lib';
+import { checkLambdaAccess } from './access';
 import { deployFunction } from './deploy';
 import { invokeFunction } from './invoke';
 import { provider } from './provider';
@@ -12,3 +13,7 @@ export let awsLambda = new ProviderImpl({
   deployFunction,
   invokeFunction
 });
+
+if (process.env.NODE_ENV == 'production') {
+  await checkLambdaAccess();
+}

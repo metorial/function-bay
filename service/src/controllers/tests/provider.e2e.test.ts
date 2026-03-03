@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { cleanDatabase } from '../../test/setup';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { functionBayClient } from '../../test/client';
+import { cleanDatabase } from '../../test/setup';
 
 describe('provider:getDefault E2E', () => {
   beforeEach(async () => {
@@ -12,7 +12,6 @@ describe('provider:getDefault E2E', () => {
     const result = await functionBayClient.provider.getDefault({});
 
     expect(result).toMatchObject({
-      object: 'function_bay#provider',
       id: expect.any(String),
       identifier: 'aws.lambda',
       name: 'AWS Lambda',

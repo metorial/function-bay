@@ -12,9 +12,11 @@ let initBuckets = async () => {
   while (true) {
     try {
       await initBuckets();
+      console.log('Initialized buckets in object store');
       return;
     } catch (err) {
       console.error('Error initializing storage buckets, retrying...');
+      console.error(err);
     }
 
     await delay(5000);

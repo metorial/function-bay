@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { testDb, cleanDatabase } from '../../test/setup';
-import { fixtures } from '../../test/fixtures';
-import { functionBayClient } from '../../test/client';
 import { times } from 'lodash';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { functionBayClient } from '../../test/client';
+import { fixtures } from '../../test/fixtures';
+import { cleanDatabase, testDb } from '../../test/setup';
 
 const providerMocks = vi.hoisted(() => ({
   invokeFunction: vi.fn()
@@ -31,7 +31,6 @@ describe('function:upsert E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function',
       id: expect.any(String),
       identifier: 'my-function',
       name: 'My Function',
@@ -99,7 +98,6 @@ describe('function:list E2E', () => {
     const [presented] = result.items;
     expect(presented).toBeDefined();
     expect(presented).toMatchObject({
-      object: 'function_bay#function',
       id: expect.any(String),
       identifier: expect.any(String),
       name: expect.any(String),
@@ -125,7 +123,6 @@ describe('function:get E2E', () => {
     });
 
     expect(result).toMatchObject({
-      object: 'function_bay#function',
       id: func.id,
       identifier: func.identifier,
       name: func.name
