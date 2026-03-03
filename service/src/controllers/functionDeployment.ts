@@ -1,6 +1,6 @@
 import { functionBayRuntimeSpec } from '@function-bay/types';
 import { Paginator } from '@lowerdeck/pagination';
-import { v } from '@lowerdeck/validation';
+import { createValidator, v, type ValidatorOptions } from '@lowerdeck/validation';
 import { functionDeploymentPresenter, functionDeploymentStepPresenter } from '../presenters';
 import { functionDeploymentService } from '../services';
 import { app } from './_app';
@@ -16,6 +16,36 @@ export let functionDeploymentApp = functionApp.use(async ctx => {
   });
 
   return { deployment };
+});
+
+let longString = createValidator<string, ValidatorOptions<string>>('string', (opts, value) => {
+  if (typeof value != 'string') {
+    return {
+      success: false,
+      errors: [
+        {
+          code: 'invalid_type',
+          message: opts.message ?? `Invalid input, expected string, received ${typeof value}`,
+          received: typeof value,
+          expected: 'string'
+        }
+      ]
+    };
+  }
+
+  if (value.length > 50_000_000) {
+    return {
+      success: false,
+      errors: [
+        {
+          code: 'max_length',
+          message: 'Input is too long'
+        }
+      ]
+    };
+  }
+
+  return { success: true, value };
 });
 
 export let functionDeploymentController = app.controller({
@@ -39,7 +69,7 @@ export let functionDeploymentController = app.controller({
         files: v.array(
           v.object({
             filename: v.string(),
-            content: v.string(),
+            content: longString(),
             encoding: v.optional(v.enumOf(['utf-8', 'base64']))
           })
         )
