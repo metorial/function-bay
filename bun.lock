@@ -141,7 +141,7 @@
         "@lowerdeck/service": "^1.0.3",
         "@lowerdeck/slugify": "^1.0.5",
         "@lowerdeck/snowflake": "^1.0.2",
-        "@lowerdeck/validation": "^1.0.6",
+        "@lowerdeck/validation": "^1.0.8",
         "@metorial-services/forge-client": "^1.0.4",
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
@@ -2083,7 +2083,7 @@
 
     "@function-bay/nodejs/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
-    "@function-bay/types/@lowerdeck/validation": ["@lowerdeck/validation@1.0.6", "", {}, "sha512-5lL09/WC4nttCJ19InxtCKSqd5xDoHkkpdREzoY9jYKFpdhNLudd4NDYmtiOWq9yI709uQjR16S/pI+knx1S1g=="],
+    "@function-bay/types/@lowerdeck/validation": ["@lowerdeck/validation@1.0.8", "", {}, "sha512-7sW91bml0iY+JipHOndla2uAEwTbFQwINAUrb0oGEVMQQ522MAa4PgwTKjJAG9DZ12LGhOgYEJoo7CyJo8aJNQ=="],
 
     "@function-bay/types/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
@@ -2249,7 +2249,7 @@
 
     "function-bay/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
-    "function-bay-service/@lowerdeck/validation": ["@lowerdeck/validation@1.0.6", "", {}, "sha512-5lL09/WC4nttCJ19InxtCKSqd5xDoHkkpdREzoY9jYKFpdhNLudd4NDYmtiOWq9yI709uQjR16S/pI+knx1S1g=="],
+    "function-bay-service/@lowerdeck/validation": ["@lowerdeck/validation@1.0.8", "", {}, "sha512-7sW91bml0iY+JipHOndla2uAEwTbFQwINAUrb0oGEVMQQ522MAa4PgwTKjJAG9DZ12LGhOgYEJoo7CyJo8aJNQ=="],
 
     "function-bay-service/@types/bun": ["@types/bun@1.3.10", "", { "dependencies": { "bun-types": "1.3.10" } }, "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ=="],
 
