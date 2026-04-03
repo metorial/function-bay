@@ -49,7 +49,7 @@ let tryDirs = (filenames: string[]) =>
 export let build = async (): Promise<void> => {
   console.log('Building Node.js function...');
 
-  await $`bun i -g @vercel/ncc typescript`;
+  await $`bun i -g @vercel/ncc typescript @types/node`;
   await $`curl https://get.volta.sh | bash`;
 
   console.log('Setting up Node.js build environment...');
@@ -81,17 +81,21 @@ export let build = async (): Promise<void> => {
       console.log('Detected yarn.lock, installing dependencies with Yarn...');
       await $`bash -c "volta install yarn@1"`.env(env);
       await $`bash -c "yarn install"`.env(env);
+      await $`bash -c "yarn add @vercel/ncc typescript @types/node"`.env(env).nothrow();
     } else if (fileExistsSync('pnpm-lock.yaml')) {
       console.log('Detected pnpm-lock.yaml, installing dependencies with pnpm...');
       await $`bash -c "volta install pnpm"`.env(env);
       await $`bash -c "pnpm install"`.env(env);
+      await $`bash -c "pnpm add @vercel/ncc typescript @types/node"`.env(env).nothrow();
     } else if (fileExistsSync('bun.lock')) {
       console.log('Detected bun.lock, installing dependencies with Bun...');
       await $`bash -c "volta install bun"`.env(env);
       await $`bash -c "bun install"`.env(env);
+      await $`bash -c "bun add @vercel/ncc typescript @types/node"`.env(env).nothrow();
     } else {
       console.log('Installing dependencies with npm...');
       await $`bash -c "npm install"`.env(env);
+      await $`bash -c "npm install @vercel/ncc typescript @types/node"`.env(env).nothrow();
     }
   } else {
     console.log('No package.json found, skipping dependency installation.');
